@@ -5,7 +5,7 @@
 	<Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
 	<ProductVersion>10.0.20506</ProductVersion>
 	<SchemaVersion>2.0</SchemaVersion>
-	<ProjectGuid>{A143346E-0261-50E2-3716-FC2A69924228}</ProjectGuid>
+	<ProjectGuid>{8FDA37BB-7BC7-335C-1D26-A4E7D82E8970}</ProjectGuid>
 	<OutputType>Library</OutputType>
 	<AppDesignerFolder>Properties</AppDesignerFolder>
 	<RootNamespace></RootNamespace>
@@ -54,6 +54,7 @@
      <Compile Include="Assets\Z_Scripts\CustomScripts\FishSystem\FishBounds\BoidsArea.cs" />
      <Compile Include="Assets\Z_Scripts\CustomScripts\FishSystem\FishBounds\BoundsContainment.cs" />
      <Compile Include="Assets\Z_Scripts\CustomScripts\FishSystem\FishBounds\BoundsOctree.cs" />
+     <Compile Include="Assets\Z_Scripts\CustomScripts\FishSystem\FishBounds\OctreeAnalyser.cs" />
      <Compile Include="Assets\Z_Scripts\CustomScripts\FishSystem\FishBounds\OctreeObstacle_Sphere.cs" />
      <Compile Include="Assets\Z_Scripts\CustomScripts\FishSystem\FishControl.cs" />
      <Compile Include="Assets\Z_Scripts\CustomScripts\FishSystem\FishMove.cs" />
@@ -149,9 +150,9 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="Assembly-CSharp-firstpass.csproj">
-      <Project>{C6779C27-DF81-2831-FF58-A36FC60001DB}</Project>      <Name>Assembly-CSharp-firstpass</Name>    </ProjectReference>
+      <Project>{F517B258-BE8A-1DD5-4F7C-B1064E6B8898}</Project>      <Name>Assembly-CSharp-firstpass</Name>    </ProjectReference>
     <ProjectReference Include="Assembly-UnityScript-firstpass.unityproj">
-      <Project>{16180DEF-C5F4-3EEE-29F5-AB268725BDA5}</Project>      <Name>Assembly-UnityScript-firstpass</Name>    </ProjectReference>
+      <Project>{CB62FF20-2B49-4A99-AC0A-9C60D5DD710E}</Project>      <Name>Assembly-UnityScript-firstpass</Name>    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -18,6 +18,7 @@ public class BoidsArea : MonoBehaviour
 
 	// Use this for initialization
     public static List<BoundsOctree> boundsCollection;
+    public static bool fastObstacle = true;
     private BoundsOctree bounds;
     public int maxLevels = 4;
     public float boundsSize = 10.0f;
@@ -230,7 +231,15 @@ public class BoidsArea : MonoBehaviour
         {
             relatedOctree.RefreshNeighbors();
         }
-        bounds.EstablishRelations();
+        BoundsOctree origoBound = bounds.GetBound(true, transform.position + startingPoint);
+        if (origoBound != null)
+        {
+            origoBound.EstablishRelations();
+        }
+        else
+        {
+            DebugOutput.Shout("Origopoint is unreachable.");
+        }
         stopWatch.Stop();
         DebugOutput.Shout("Finished Loading bounds in "+stopWatch.ElapsedMilliseconds +" milliseconds.");
         int cnt = 0;
@@ -249,6 +258,16 @@ public class BoidsArea : MonoBehaviour
     {
 	
 	}
+    void OnGUI()
+    {
+        if(bounds!=null)
+        {
+            if (GUI.Button(new Rect(10, 130, 200, 20), "FastCheck: " + fastObstacle))
+            {
+                fastObstacle = !fastObstacle;
+            }
+        }
+    }
 #if UNITY_EDITOR
     public void OnDrawGizmos()
     {

@@ -79,6 +79,7 @@ class GL_OctreeRenderer : MonoBehaviour
                 RenderNonEmpty = !RenderNonEmpty;
             }
         }
+        GUI.Label(new Rect(10f, Screen.height - 40f, 200f, 30f), "Pelle Bostrom 2014");
        
     }
 }

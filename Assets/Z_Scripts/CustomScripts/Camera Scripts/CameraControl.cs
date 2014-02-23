@@ -15,10 +15,11 @@ public class CameraControl : MonoBehaviour {
 
     float rotationY = 0F;
 
+    Vector3 startPos;
 
     public void Awake()
     {
-
+        startPos = transform.position;
 
     }
     void Update()
@@ -63,5 +64,15 @@ public class CameraControl : MonoBehaviour {
         transform.position += transform.right * Input.GetAxis("Horizontal")*Time.deltaTime*100;
         transform.position += transform.forward * Input.GetAxis("Vertical")*Time.deltaTime*100;
     }
+
+    public void OnGUI()
+    {
+        if ((transform.position - startPos).sqrMagnitude < 100)
+        {
+            GUI.contentColor = Color.blue;
+            GUI.Label(new Rect(Screen.width * 0.35f, Screen.height * 0.5f, 400, 20), "Use WASD to move and Right mousebutton to rotate");
+    
+        }
+     }
 
 }

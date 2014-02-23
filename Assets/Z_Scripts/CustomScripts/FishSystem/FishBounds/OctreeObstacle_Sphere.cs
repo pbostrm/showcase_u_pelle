@@ -35,23 +35,25 @@ class OctreeObstacle_Sphere: MonoBehaviour
 
             for (int i = occupiedOctrees.Count - 1; i >= 0; i--)
             {
-                if (!occupiedOctrees[i].isSphereInside(transform.position, radius))
+                if (!occupiedOctrees[i].IntersectSphere(transform.position, radius))
                 {
                     occupiedOctrees[i].Obstacle = false;
-                    boundsToBeDeGhosted = occupiedOctrees[i];
-                    boundsToBeDeGhosted.CleanupObstacleGhost();
+                    occupiedOctrees[i].CleanupObstacleGhost();
                     occupiedOctrees.RemoveAt(i);
                
                 }
-                //if(boundsToBeDeGhosted != null)
-                  // boundsToBeDeGhosted.CleanupObstacleGhost();
+
 
             }
         }
-        foreach (var boundsOctree in BoidsArea.boundsCollection)
+        if (BoidsArea.boundsCollection != null)
         {
-            boundsOctree.GetBounds(occupiedOctrees, transform.position, radius);
+            foreach (var boundsOctree in BoidsArea.boundsCollection)
+            {
+                boundsOctree.GetBounds(occupiedOctrees, transform.position, radius);
+            }
         }
+        
         if (occupiedOctrees != null)
         {
             occupiedOctreesCnt = occupiedOctrees.Count;
@@ -72,7 +74,7 @@ class OctreeObstacle_Sphere: MonoBehaviour
     {
         if (resettable)
         {
-            if (GUI.Button(new Rect(10, 130+(id*22), 100, 20), "ResetBall"))
+            if (GUI.Button(new Rect(10, 170+(id*22), 100, 20), "ResetBall"))
             {
                 transform.position = startposition;
             }

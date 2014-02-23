@@ -168,8 +168,21 @@ public class BoundsOctree
         corners[7] = new Vector3(1f, 1f, 1f) * size + position;
 		
 	}
-	public void ClearOctree()
+	
+    public void ClearOctree()
 	{
+        if (relatedOctrees != null)
+        {
+            relatedOctrees.Remove(this);
+            relatedOctrees = null;
+        }
+        ClearNeighbors();
+		shouldBeDeleted = true;
+		//neighbors.Clear();
+		//Debug.Log("Prutt");
+	}
+    public void ClearNeighbors()
+    {
         if (parentOctree.abandonedNeighbors == null)
         {
             parentOctree.abandonedNeighbors = new List<BoundsOctree>();
@@ -182,43 +195,54 @@ public class BoundsOctree
             }
         }
 
-        
-        foreach (var neighbor in neighbors)
+        if (neighbors != null)
         {
-            if(!parentOctree.abandonedNeighbors.Contains(neighbor))
+            foreach (var neighbor in neighbors)
             {
-                parentOctree.abandonedNeighbors.Add(neighbor);
+                if (!parentOctree.abandonedNeighbors.Contains(neighbor))
+                {
+                    parentOctree.abandonedNeighbors.Add(neighbor);
+                }
             }
+            neighbors.Clear();
+            neighbors = null;
         }
-		//relatedOctrees.Remove(this);
-		//octrees.Remove(this);
-		/*
-		for (int index = neighbors.Count - 1; index > 0; index--)
-		{
-			if (neighbors[index] != null)
-			{
-				neighbors[index].neighbors.Remove(this);
-				neighbors[index].AddNeighbor(parentOctree);
-			}
-		}*/
-		shouldBeDeleted = true;
-		//neighbors.Clear();
-		//Debug.Log("Prutt");
-	}
+    }
+
 	public void RefreshNeighbors()
 	{
-		if (neighbors == null)
+		
+        if (abandonedNeighbors != null)
+        {
+            foreach (var abandonedNeighbor in abandonedNeighbors)
+            {
+                if (abandonedNeighbor != null)
+                    abandonedNeighbor.RefreshNeighbors();
+            }
+            abandonedNeighbors.Clear();
+            abandonedNeighbors = null;
+        }
+        
+		if (subOctrees !=null || !Empty)
 		{
-			neighbors = new List<BoundsOctree>();
-		}
-		else
-		{
-			neighbors.Clear();
-		}
-		if (subOctrees != null || !Empty)
-		{
+            if (subOctrees != null)
+            {
+                foreach (var subOctree in subOctrees)
+                {
+                    subOctree.RefreshNeighbors();
+                }
+            }
+            neighbors = null;
 			return;
 		}
+        if (neighbors == null)
+        {
+            neighbors = new List<BoundsOctree>();
+        }
+        else
+        {
+            neighbors.Clear();
+        }
 		if (parentOctree != null)
 		{
 			for (int i = 0; i < 26; i++)
@@ -227,15 +251,9 @@ public class BoundsOctree
 
 			}
 		}
-        if (abandonedNeighbors != null)
-        {
-            foreach (var abandonedNeighbor in abandonedNeighbors)
-            {
-                abandonedNeighbor.RefreshNeighbors();
-            }
-            abandonedNeighbors = null;
-        }
+        
 	}
+
 	public void getAdjacent(int workingID, int targetID, BoundsOctree target, List<BoundsOctree> neighBorList)
 	{
 		for (int i = 0; i < 8; i++)
@@ -446,6 +464,18 @@ public class BoundsOctree
 					(((targetXLoc & childBranchBit) >> levelDepth - 1)) +
 					(((targetYLoc & childBranchBit) >> levelDepth - 1) * 4) +
 					(((targetZLoc & childBranchBit) >> levelDepth - 1) * 2);
+                    if (subOctrees[childIndex] == null)
+                    {
+                        int subsMissing = 0;
+                        foreach (var sub in subOctrees)
+                        {
+                            if (sub == null)
+                            {
+                                subsMissing++;
+                            }
+                        }
+                        DebugOutput.Shout("SubOctree has been deleted somewhere : "+subsMissing);
+                    }
 					subOctrees[childIndex].AddToNeighbors(source, targetXLoc, targetYLoc, targetZLoc);
 
 				}
@@ -692,11 +722,12 @@ public class BoundsOctree
 	public void EstablishRelations()
 	{
 		Related = true;
-		foreach (var boundsOctree in neighbors)
+        if(neighbors !=null)
+		foreach (var neighbor in neighbors)
 		{
-			if(!boundsOctree.Related)
+            if (!neighbor.Related)
 			{
-				boundsOctree.EstablishRelations();
+                neighbor.EstablishRelations(); //this kills the computer with stackoverflow eventually (its not infinite its just too much)
 			}
 		}
 	}
@@ -824,69 +855,104 @@ public class BoundsOctree
 		return null;
 	}
 
-    public void GetBounds(List<BoundsOctree> foundBounds,Vector3 point,float radius)
+    public void GetBounds(List<BoundsOctree> foundBounds,Vector3 point,float radius) //needs heavy optimization, creating too many subs
     {
-        if(isSphereInside(point,radius))
+        if (BoidsArea.fastObstacle && Obstacle)
         {
-            if (subOctrees != null)
+
+            return;
+        }
+        if (IntersectSphere(point, radius))
+        {
+            
+            //create children
+            if (!isInsideSphere(point, radius))
             {
-                foreach (var subOctree in subOctrees)
+                if (subOctrees == null && levelDepth >= 1)
                 {
-                    subOctree.GetBounds(foundBounds,point, radius);
+                    //do surrounding check, if we're already deep surrounded by obstacles, most likely children will be too.
+                    bool surroundedWithObstacle = true;
+                    if (neighbors != null)
+                    {
+                        foreach (var neighbor in neighbors)
+                        {
+                            if (!neighbor.Obstacle)
+                            {
+                                surroundedWithObstacle = false;
+                                break;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        surroundedWithObstacle = false;
+                    }
+
+                    if (!surroundedWithObstacle)
+                    {
+                        //create children.
+                        subOctrees = new BoundsOctree[8];
+                        for (int i = 0; i < 8; i++)
+                        {
+                            subOctrees[i] = new BoundsOctree(this, i, "Name", size * 0.5f,
+                                position, levelDepth - 1, 999, relatedOctrees);
+                            subOctrees[i].Empty = Empty;
+                        }
+                        foreach (var sub in subOctrees)
+                        {
+                            sub.RefreshNeighbors();
+                        }
+                    }
 
                 }
-            }
-            else
-            {
-                if (levelDepth >= 1)
+
+                //check children
+                if (subOctrees != null)
                 {
-                    subOctrees = new BoundsOctree[8];
                     bool AllSubsObstacled = true;
-                    for (int i = 0; i < 8; i++)
+
+                    foreach (var sub in subOctrees)
                     {
-                        subOctrees[i] = new BoundsOctree(this, i, "Name", size * 0.5f,
-                            position, levelDepth - 1, 999, relatedOctrees);
-                        subOctrees[i].Empty = Empty;
-                        subOctrees[i].GetBounds(foundBounds, point, radius);
-                        if (!subOctrees[i].Obstacle)
+                        sub.GetBounds(foundBounds, point, radius);
+                        if (!sub.Obstacle || !sub.Empty)
                         {
                             AllSubsObstacled = false;
                         }
+
                     }
-                    if (AllSubsObstacled)
+                    if (AllSubsObstacled) //lets clean subs and have this be the end of the branch
                     {
                         for (int i = 0; i < 8; i++)
                         {
-                            subOctrees[i].ClearOctree(); 
+                            subOctrees[i].ClearOctree();
                             subOctrees[i] = null;
                         }
                         subOctrees = null;
-                        //RefreshNeighbors();
-
-
+                        RefreshNeighbors();
+                    }
+                    else
+                    {
+                        neighbors = null;
+                        foreach (var sub in subOctrees)
+                        {
+                            if (sub.Obstacle)
+                            {
+                                if (!foundBounds.Contains(sub))
+                                    foundBounds.Add(sub);
+                            }
+                        }
                     }
                 }
-                else if(Empty)
-                {
-                    if (foundBounds == null)
-                    {
-                        foundBounds = new List<BoundsOctree>();
-                    }
-                    if (!foundBounds.Contains(this))
-                    {
-                        foundBounds.Add(this);
-                        Obstacle = true;
-                    }
-                }
-
-                
             }
-               
+            
+            if(subOctrees==null)
+            {
+                Obstacle = true;
+
+            }
 
         }
-
     }
-
     public void CleanupObstacleGhost()
     {
         if (subOctrees != null)
@@ -908,7 +974,7 @@ public class BoundsOctree
                     subOctrees[i] = null;
                 }
                 subOctrees = null;
-                //RefreshNeighbors();
+                RefreshNeighbors();
             }
         }
         if (subOctrees == null)
@@ -959,11 +1025,32 @@ public class BoundsOctree
 		}
 		return false;
 	}
-    public bool isSphereInside(Vector3 point,float size) // i did think of diagonal lines, need fix.
+    public bool IntersectSphere(Vector3 sphere,float radius) // i did not think of diagonal lines, need fix.
     {
-        if (point.y <= top.y+size && point.y > bottom.y-size 
-            && point.x <= east.x+size && point.x > west.x-size 
-            && point.z <= north.z+size && point.z > south.z-size)
+        if (sphere.y <= top.y + radius && sphere.y > bottom.y - radius
+            && sphere.x <= east.x + radius && sphere.x > west.x - radius
+            && sphere.z <= north.z + radius && sphere.z > south.z - radius)
+        {
+            float dist_squared = squared(radius);
+            if (sphere.x < corners[0].x) dist_squared -= squared(sphere.x - corners[0].x);
+            else if (sphere.x > corners[7].x) dist_squared -= squared(sphere.x - corners[7].x);
+            if (sphere.y < corners[0].y) dist_squared -= squared(sphere.y - corners[0].y);
+            else if (sphere.y > corners[7].y) dist_squared -= squared(sphere.y - corners[7].y);
+            if (sphere.z < corners[0].z) dist_squared -= squared(sphere.z - corners[0].z);
+            else if (sphere.z > corners[7].z) dist_squared -= squared(sphere.z - corners[7].z);
+            return dist_squared > 0;
+        }
+        
+      
+        return false;
+
+    }
+    static public float squared(float f) { return f * f; }
+    public bool isInsideSphere(Vector3 sphere, float radius)
+    {
+        if (sphere.y + radius >= top.y && sphere.y - radius < bottom.y
+            && sphere.x + radius >= east.x && sphere.x - radius < west.x
+            && sphere.z + radius >= north.z && sphere.z - radius < south.z)
         {
             return true;
         }
@@ -1002,7 +1089,6 @@ public class BoundsOctree
 			{
 				subOctrees[i] = new BoundsOctree(this, i, "Name", size * 0.5f, position, levelDepth - 1, 999, relatedOctrees);
 				subOctrees[i].CreateFromStream(br);
-				//subOctrees[i].CheckBounds(obstacleMask);
 			}
 		}
 
