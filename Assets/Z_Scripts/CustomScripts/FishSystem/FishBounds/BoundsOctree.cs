@@ -882,10 +882,9 @@ public class BoundsOctree
                         subOctrees[i] = new BoundsOctree(this, i, "Name", size * 0.5f, position, levelDepth - 1, 999, relatedOctrees);
                         subOctrees[i].Empty = Empty;
                     }
-                    octreesCreated += 8;
                     foreach (var sub in subOctrees)
                     {
-                        sub.RefreshNeighbors();
+                        sub.RefreshNeighbors(); // this one should be able to be moved down to "check children"
                     }
 
 
@@ -912,6 +911,8 @@ public class BoundsOctree
                             subOctrees[i].ClearOctree();
                             subOctrees[i] = null;
                         }
+                        octreesCreated += 8;
+
                         subOctrees = null;
                         RefreshNeighbors();
                     }
@@ -920,6 +921,7 @@ public class BoundsOctree
                         neighbors = null;
                         foreach (var sub in subOctrees)
                         {
+                            //sub.RefreshNeighbors();
                             if (sub.Obstacle)
                             {
                                 if (!foundBounds.Contains(sub))
