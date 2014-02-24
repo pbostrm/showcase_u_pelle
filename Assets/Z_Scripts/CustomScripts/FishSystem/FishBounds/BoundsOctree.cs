@@ -855,54 +855,39 @@ public class BoundsOctree
 		return null;
 	}
 
-    public void GetBounds(List<BoundsOctree> foundBounds,Vector3 point,float radius) //needs heavy optimization, creating too many subs
+    public void GetBounds(bool createdRecursively, List<BoundsOctree> foundBounds,Vector3 point,float radius,ref int octreesCreated) //needs heavy optimization, creating too many subs
     {
+        octreesCreated += 0;
         if (BoidsArea.fastObstacle && Obstacle)
         {
 
             return;
         }
+
         if (IntersectSphere(point, radius))
         {
             
             //create children
-            if (!isInsideSphere(point, radius))
+            if (!isSphereOverlapCorner(point, radius))
             {
                 if (subOctrees == null && levelDepth >= 1)
                 {
                     //do surrounding check, if we're already deep surrounded by obstacles, most likely children will be too.
-                    bool surroundedWithObstacle = true;
-                    if (neighbors != null)
+                    bool surroundedWithObstacle = false;
+
+                    //create children.
+                    subOctrees = new BoundsOctree[8];
+                    for (int i = 0; i < 8; i++)
                     {
-                        foreach (var neighbor in neighbors)
-                        {
-                            if (!neighbor.Obstacle)
-                            {
-                                surroundedWithObstacle = false;
-                                break;
-                            }
-                        }
+                        subOctrees[i] = new BoundsOctree(this, i, "Name", size * 0.5f, position, levelDepth - 1, 999, relatedOctrees);
+                        subOctrees[i].Empty = Empty;
                     }
-                    else
+                    octreesCreated += 8;
+                    foreach (var sub in subOctrees)
                     {
-                        surroundedWithObstacle = false;
+                        sub.RefreshNeighbors();
                     }
 
-                    if (!surroundedWithObstacle)
-                    {
-                        //create children.
-                        subOctrees = new BoundsOctree[8];
-                        for (int i = 0; i < 8; i++)
-                        {
-                            subOctrees[i] = new BoundsOctree(this, i, "Name", size * 0.5f,
-                                position, levelDepth - 1, 999, relatedOctrees);
-                            subOctrees[i].Empty = Empty;
-                        }
-                        foreach (var sub in subOctrees)
-                        {
-                            sub.RefreshNeighbors();
-                        }
-                    }
 
                 }
 
@@ -913,7 +898,7 @@ public class BoundsOctree
 
                     foreach (var sub in subOctrees)
                     {
-                        sub.GetBounds(foundBounds, point, radius);
+                        sub.GetBounds(true, foundBounds, point, radius, ref octreesCreated);
                         if (!sub.Obstacle || !sub.Empty)
                         {
                             AllSubsObstacled = false;
@@ -948,7 +933,11 @@ public class BoundsOctree
             if(subOctrees==null)
             {
                 Obstacle = true;
-
+                if (!createdRecursively)
+                {
+                    if (!foundBounds.Contains(this))
+                        foundBounds.Add(this);
+                }
             }
 
         }
@@ -1025,13 +1014,24 @@ public class BoundsOctree
 		}
 		return false;
 	}
-    public bool IntersectSphere(Vector3 sphere,float radius) // i did not think of diagonal lines, need fix.
+    
+    public bool IntersectSphere(Vector3 sphere,float radius) 
     {
-        if (sphere.y <= top.y + radius && sphere.y > bottom.y - radius
+        float dist_squared = squared(radius);
+        
+        foreach (var corner in corners) //first pass
+        {
+            if((sphere - corner).sqrMagnitude < dist_squared)
+            {
+                return true;
+            }
+        }
+        
+        if (sphere.y <= top.y + radius && sphere.y > bottom.y - radius // second exlusion pass
             && sphere.x <= east.x + radius && sphere.x > west.x - radius
             && sphere.z <= north.z + radius && sphere.z > south.z - radius)
         {
-            float dist_squared = squared(radius);
+            // third absolute pass
             if (sphere.x < corners[0].x) dist_squared -= squared(sphere.x - corners[0].x);
             else if (sphere.x > corners[7].x) dist_squared -= squared(sphere.x - corners[7].x);
             if (sphere.y < corners[0].y) dist_squared -= squared(sphere.y - corners[0].y);
@@ -1046,7 +1046,7 @@ public class BoundsOctree
 
     }
     static public float squared(float f) { return f * f; }
-    public bool isInsideSphere(Vector3 sphere, float radius)
+    public bool isSphereOverlapEdge(Vector3 sphere, float radius)
     {
         if (sphere.y + radius >= top.y && sphere.y - radius < bottom.y
             && sphere.x + radius >= east.x && sphere.x - radius < west.x
@@ -1056,7 +1056,30 @@ public class BoundsOctree
         }
         return false;
     }
+    public bool isSphereOverlapCorner(Vector3 sphere, float radius)
+    {
+        float radSqr = squared(radius);
+        if ((sphere - corners[0]).sqrMagnitude > radSqr)
+        {
+            return false;
+        }
+        if ((sphere - corners[7]).sqrMagnitude > radSqr)
+        {
+            return false;
+        }
+        return true;
+    }
 
+    public bool SphereIntersectDistanceGuess(Vector3 sphere,float radius, float distance) //distance is measured 1.0 = radius;
+    {
+        //this is not an accurate volume Representation but rather a guesstimate, performance>precision.
+
+        if ((sphere - position).sqrMagnitude < squared((radius+size) * distance))
+        {
+            return true;
+        }
+        return false;
+    }
 
 	public void SaveOctreeToStream(BinaryWriter bw)
 	{

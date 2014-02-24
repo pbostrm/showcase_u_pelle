@@ -19,6 +19,11 @@ class OctreeObstacle_Sphere: MonoBehaviour
     Vector3 startposition;
 
     public bool resettable;
+    public float createdOctreesPerSecond;
+    public float createdOctreesPerFrameAverage;
+    float createdOctreesCnt;
+    float createdOctreesTimer;
+
 
     public void Awake()
     {
@@ -30,6 +35,13 @@ class OctreeObstacle_Sphere: MonoBehaviour
     }
     public void Update()
     {
+        int octreesCreated = 0;
+        createdOctreesTimer += Time.deltaTime;
+
+        if (occupiedOctrees == null)
+        {
+            occupiedOctrees = new List<BoundsOctree>();
+        }
         if (occupiedOctrees != null)
         {
 
@@ -42,21 +54,57 @@ class OctreeObstacle_Sphere: MonoBehaviour
                     occupiedOctrees.RemoveAt(i);
                
                 }
+                else
+                {
+                    if (occupiedOctrees[i].neighbors != null)
+                    {
+                        for (int j = occupiedOctrees[i].neighbors.Count - 1; j >= 0; j--)
+                        {
+                            if (!occupiedOctrees[i].neighbors[j].Obstacle)
+                            {
+
+                                occupiedOctrees[i].neighbors[j].GetBounds(false,occupiedOctrees, transform.position, radius,ref octreesCreated);
+
+                            }
+
+                        }
+
+                    }
+                }
 
 
             }
         }
-        if (BoidsArea.boundsCollection != null)
+
+        if (!BoidsArea.fastObstacle || occupiedOctrees.Count ==0)
         {
-            foreach (var boundsOctree in BoidsArea.boundsCollection)
+            if (BoidsArea.boundsCollection != null)
             {
-                boundsOctree.GetBounds(occupiedOctrees, transform.position, radius);
+                foreach (var boundsOctree in BoidsArea.boundsCollection)
+                {
+                    boundsOctree.GetBounds(false,occupiedOctrees, transform.position, radius,ref octreesCreated);
+                }
             }
         }
-        
+
+        createdOctreesCnt += octreesCreated;
+        octreesCreated = 0;
+
+        if (createdOctreesTimer >= 1.0f)
+        {
+            createdOctreesPerSecond = createdOctreesCnt;
+            createdOctreesPerFrameAverage = createdOctreesPerSecond * Time.deltaTime;
+            createdOctreesCnt = 0.0f;
+            createdOctreesTimer = 0.0f;
+        }
         if (occupiedOctrees != null)
         {
             occupiedOctreesCnt = occupiedOctrees.Count;
+        }
+        else
+        {
+
+            occupiedOctreesCnt = 0;
         }
     }
     public void OnDrawGizmos()
