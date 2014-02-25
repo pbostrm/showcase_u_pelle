@@ -9,10 +9,14 @@ class GUITestLab : MonoBehaviour
     public void Start()
     {
         ActiveMenu.CreateActiveMenu("LeftSideMenu", new Rect(300,100,16,120));
+        ActiveMenu.AddActiveGUIObject("LeftSideMenu", "Testing", DoStuff);
+        ActiveMenu.AddActiveGUIObject("LeftSideMenu", "Banan");
+        ActiveMenu.AddActiveGUIObject("LeftSideMenu", "Banan");
+
         ActiveMenu.AddActiveGUIObject("LeftSideMenu","Testing/Test123");
         ActiveMenu.AddActiveGUIObject("LeftSideMenu","Testing/Testabc",DoStuff);
-        ActiveMenu.AddActiveGUIObject("LeftSideMenu","Testing/Testabc/lalal/banan/kaka");
-       /* ActiveMenu.AddActiveGUIObject("LeftSideMenu","Testing/Testabc/lolol",DoStuff);
+        ActiveMenu.AddActiveGUIObject("LeftSideMenu","Testing/Testabc/lalal/banan/kaka",DoStuff,true);
+        ActiveMenu.AddActiveGUIObject("LeftSideMenu","Testing/Testabc/lolol",DoStuff);
         ActiveMenu.AddActiveGUIObject("LeftSideMenu","Testing/Testabc/lolol/traffle/lol");
         ActiveMenu.AddActiveGUIObject("LeftSideMenu","Testing/Testabc/lolol");
         ActiveMenu.AddActiveGUIObject("LeftSideMenu","Testing/Testabc/lolol");
@@ -23,7 +27,7 @@ class GUITestLab : MonoBehaviour
         ActiveMenu.AddActiveGUIObject("LeftSideMenu","LaunchTheMissile!/balle");
         ActiveMenu.AddActiveGUIObject("LeftSideMenu","LaunchTheMissile!/fikon");
         ActiveMenu.AddActiveGUIObject("LeftSideMenu","LaunchTheMissile!/skalle");
-        */
+        
         /*ActiveGUI.activeGUI.AddActiveGUIObject("Testing/Test123");
         ActiveGUI.activeGUI.AddActiveGUIObject("Testing/Testabc");
         ActiveGUI.activeGUI.AddActiveGUIObject("Testing/Testabc/lalal/banan/kaka");

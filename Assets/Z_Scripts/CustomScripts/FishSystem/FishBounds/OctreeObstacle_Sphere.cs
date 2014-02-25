@@ -32,6 +32,18 @@ class OctreeObstacle_Sphere: MonoBehaviour
         startposition = transform.position;
         occupiedOctrees = new List<BoundsOctree>();
         radius = GetComponent<SphereCollider>().radius * transform.lossyScale.x;
+
+        ActiveMenu.AddActiveGUIObject("LeftSideMenu", "Flying Balls/Reset_ball_" + id.ToString(), ResetBall);
+    }
+    public void Start()
+    {
+       
+
+    }
+
+    public void ResetBall()
+    {
+        transform.position = startposition;
     }
     public void Update()
     {
@@ -122,16 +134,5 @@ class OctreeObstacle_Sphere: MonoBehaviour
                 Gizmos.DrawCube(occupiedOctree.position, occupiedOctree.size * Vector3.one * 2);
             }
         }
-    }
-    public void OnGUI()
-    {
-        if (resettable)
-        {
-            if (GUI.Button(new Rect(10, 250+(id*22), 100, 20), "ResetBall"))
-            {
-                transform.position = startposition;
-            }
-        }
-        
     }
 }

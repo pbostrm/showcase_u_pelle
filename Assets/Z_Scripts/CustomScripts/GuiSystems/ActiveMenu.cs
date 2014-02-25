@@ -26,22 +26,31 @@ class ActiveMenu : MonoBehaviour
         {
             if (activemenu.MenuName == menuName)
             {
+                activemenu.menuRect = rect;
                 return;
             }
         }
-        GameObject g = new GameObject("_ActiveMenu." + menuName);
+        GameObject g = new GameObject("_ActiveMenu_" + menuName);
         ActiveMenu am = g.AddComponent<ActiveMenu>();
         am.MenuName = menuName;
-        activeMenus.Add(am);
         am.menuRect = rect;
+
+        activeMenus.Add(am);
     }
     static public void AddActiveGUIObject(string menuName, string path)
     {
-        AddActiveGUIObject(menuName, path, null);
+        AddActiveGUIObject(menuName, path, null,false);
     }
-    static public void AddActiveGUIObject(string menuName,string path,ActiveGUIObject.GUIButtonDelegate buttondelegate)
+    static public void AddActiveGUIObject(string menuName,string path,ActiveGUIObject.GUIButtonDelegate bDelegate)
     {
-
+        AddActiveGUIObject(menuName, path, bDelegate, false);
+    }
+    static public void AddActiveGUIObject(string menuName,string path,ActiveGUIObject.GUIButtonDelegate bDelegate,bool ActivatedOnStart)
+    {
+        if (activeMenus == null)
+        {
+            CreateActiveMenu(menuName, new Rect(10, 10, 10, 10));
+        }
         foreach (var activemenu in activeMenus)
         {
             if (activemenu.MenuName == menuName)
@@ -52,7 +61,7 @@ class ActiveMenu : MonoBehaviour
                     activemenu.mainGuiObject = new ActiveGUIObject();
                     activemenu.mainGuiObject.Active = true;
                 }
-                activemenu.mainGuiObject.AddGuiObject(path,buttondelegate);
+                activemenu.mainGuiObject.AddGuiObject(path, bDelegate,ActivatedOnStart);
                 break;
             }
         }
@@ -66,8 +75,8 @@ class ActiveMenu : MonoBehaviour
         {
             GUI.skin = (GUISkin)Resources.Load("ActiveGUISkin2");
 
-            mainGuiObject.AllfatherGUIRect.x = menuRect.left;
-            mainGuiObject.AllfatherGUIRect.y = menuRect.top;
+            mainGuiObject.AllfatherGUIRect.x = menuRect.xMin;
+            mainGuiObject.AllfatherGUIRect.y = menuRect.yMin;
             mainGuiObject.AllfatherGUIRect.height = mainGuiObject.GetNumberButtons() * (ButtonHeight + 1);
             mainGuiObject.AllfatherGUIRect.width = ((mainGuiObject.GetNumbersWidth() - 1) * 15) + ButtonWidth;
 
@@ -79,10 +88,8 @@ class ActiveMenu : MonoBehaviour
             GUILayout.BeginArea(mainGuiObject.AllfatherGUIRect);
             GUILayout.BeginVertical();
 
-            if (mainGuiObject.DrawActiveGUIObject())
-            {
-                //GuiHasBeenToggled = false;
-            }
+            mainGuiObject.DrawActiveGUIObject();
+
 
             GUILayout.EndVertical();
             GUILayout.EndArea();

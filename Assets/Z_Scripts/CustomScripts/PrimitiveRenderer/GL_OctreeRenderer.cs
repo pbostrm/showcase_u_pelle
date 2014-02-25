@@ -38,6 +38,30 @@ class GL_OctreeRenderer : MonoBehaviour
 		CreateLineMaterial();
 		
 	}
+    public void Start()
+    {
+        ActiveMenu.AddActiveGUIObject("LeftSideMenu", "Octree render",ToggleGLRender,enabled);
+        ActiveMenu.AddActiveGUIObject("LeftSideMenu", "Octree render/Dynamic Obstacle", ToggleObstacle, RenderObstacle);
+        ActiveMenu.AddActiveGUIObject("LeftSideMenu", "Octree render/Render Empty", ToggleEmpty, RenderEmpty);
+        ActiveMenu.AddActiveGUIObject("LeftSideMenu", "Octree render/Static Obstacle", ToggleS_Obstacle, RenderObstacle);
+
+    }
+    public void ToggleGLRender()
+    {
+        enabled = !enabled;
+    }
+    public void ToggleObstacle()
+    {
+        RenderObstacle = !RenderObstacle;
+    }
+    public void ToggleEmpty()
+    {
+        RenderEmpty = !RenderEmpty;
+    }
+    public void ToggleS_Obstacle()
+    {
+        RenderNonEmpty = !RenderNonEmpty;
+    }
     public static void AddRenderDelegate(GL_OctreeRenderDelegate func)
     {
         if (renderDelegates == null)
@@ -53,48 +77,25 @@ class GL_OctreeRenderer : MonoBehaviour
 	public void OnPostRender() {
 
 
+        lineMaterial.SetPass(0);
+        GL.Begin(GL.LINES);
         if (enabled)
         {
-            lineMaterial.SetPass(0);
-            GL.Begin(GL.LINES);
+            boundsOctree.GL_Draw(false, RenderEmpty, false);
+            boundsOctree.GL_Draw(false, false, RenderNonEmpty);
+            boundsOctree.GL_Draw(RenderObstacle, false, false);
+        }
 
-            boundsOctree.GL_Draw(false,RenderEmpty,false);
-            boundsOctree.GL_Draw(false,false,RenderNonEmpty);
-            boundsOctree.GL_Draw(RenderObstacle,false,false);
 
-            if (renderDelegates != null)
+        if (renderDelegates != null)
+        {
+            foreach (var renderDelagate in renderDelegates)
             {
-                foreach (var renderDelagate in renderDelegates)
-                {
-                    renderDelagate();
-                }
+                renderDelagate();
             }
-            GL.End();
-        }	
+        }
+        	
+        GL.End();
 		
 	}
-    public void OnGUI()
-    {
-        if (GUI.Button(new Rect(10, 40, 200, 18), "GL: "+enabled.ToString()))
-        {
-            enabled = !enabled;
-        }
-        if (enabled)
-        {
-            if (GUI.Button(new Rect(10, 62, 200, 18), "Obstacle Render: " + RenderObstacle.ToString()))
-            {
-                RenderObstacle = !RenderObstacle;
-            }
-            if (GUI.Button(new Rect(10, 84, 200, 18), "Empty Render: " + RenderEmpty.ToString()))
-            {
-                RenderEmpty = !RenderEmpty;
-            }
-            if (GUI.Button(new Rect(10, 108, 200, 18), "Environment Render: " + RenderNonEmpty.ToString()))
-            {
-                RenderNonEmpty = !RenderNonEmpty;
-            }
-        }
-        GUI.Label(new Rect(10f, Screen.height - 40f, 200f, 30f), "Pelle Bostrom 2014");
-       
-    }
 }

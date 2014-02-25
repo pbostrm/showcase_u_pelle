@@ -35,7 +35,7 @@ class TranslationHandle : MonoBehaviour
                 RaycastHit hit;
                 Debug.DrawLine(ray.origin, ray.origin + ray.direction * 1000, Color.red, 5.0f);
 
-                if (Physics.Raycast(ray.origin, ray.direction, out hit, 100, layermask))
+                if (Physics.Raycast(ray.origin, ray.direction, out hit, 1000, layermask))
                 {
                     if (hit.collider.gameObject == gameObject)
                     {
@@ -55,7 +55,15 @@ class TranslationHandle : MonoBehaviour
         }
         if (movingThis)
         {
-            plane.SetNormalAndPosition(transform.right, transform.position);
+            if (axis == Vector3.one)
+            {
+                plane.SetNormalAndPosition(Camera.main.transform.forward, transform.position);
+
+            }
+            else
+            {
+                plane.SetNormalAndPosition(transform.right, transform.position);
+            }
             Debug.DrawLine(transform.position, transform.position + plane.normal*3.0f, Color.cyan);
                
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition+mousePosOffset);

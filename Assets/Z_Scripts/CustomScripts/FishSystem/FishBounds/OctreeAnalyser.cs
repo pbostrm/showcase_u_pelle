@@ -8,10 +8,43 @@ class OctreeAnalyser : MonoBehaviour
 {
 
     BoundsOctree currentBound;
+    Vector3 startPosition;
+
+    bool enabled;
     public void Awake()
     {
+        startPosition = transform.position;
+
+        transform.position = Vector3.one * 3000f;
+
 
         GL_OctreeRenderer.AddRenderDelegate(GL_Draw);
+    }
+    public void Start()
+    {
+         ActiveMenu.AddActiveGUIObject("LeftSideMenu", "Octree Analyzer", Hide);
+        ActiveMenu.AddActiveGUIObject("LeftSideMenu", "Octree Analyzer/Reset", Reset);
+        ActiveMenu.AddActiveGUIObject("LeftSideMenu", "Octree Analyzer/This tool shows the");
+        ActiveMenu.AddActiveGUIObject("LeftSideMenu", "Octree Analyzer/realtime Neighbor ");
+        ActiveMenu.AddActiveGUIObject("LeftSideMenu", "Octree Analyzer/generation");
+    }
+    public void Hide()
+    {
+        enabled = !enabled;
+        if (!enabled)
+        {
+            transform.position = Vector3.one * 3000f;
+        }
+        else
+        {
+            Reset();
+        }
+    }
+    public void Reset()
+    {
+        
+        transform.position = startPosition;
+
     }
     public void Update()
     {

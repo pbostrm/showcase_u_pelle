@@ -74,6 +74,7 @@
      <Compile Include="Assets\Z_Scripts\CustomScripts\PrimitiveRenderer\GL_LineRenderer.cs" />
      <Compile Include="Assets\Z_Scripts\CustomScripts\PrimitiveRenderer\GL_Object.cs" />
      <Compile Include="Assets\Z_Scripts\CustomScripts\PrimitiveRenderer\GL_OctreeRenderer.cs" />
+     <Compile Include="Assets\Z_Scripts\CustomScripts\ShowCaseGUI.cs" />
      <Compile Include="Assets\Z_Scripts\CustomScripts\SimpleController.cs" />
      <Compile Include="Assets\Z_Scripts\CustomScripts\System\sBehaviour.cs" />
      <Compile Include="Assets\Z_Scripts\CustomScripts\System\sTime.cs" />

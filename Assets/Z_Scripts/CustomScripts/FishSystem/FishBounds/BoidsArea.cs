@@ -7,7 +7,7 @@ using System.Xml.Serialization;
 using Debug = UnityEngine.Debug;
 using System.Collections.Generic;
 
-public class BoidsArea : MonoBehaviour
+class BoidsArea : MonoBehaviour
 {
     public bool DrawGizmos = false;
     public bool DrawEmptyGizmos = false;
@@ -34,6 +34,7 @@ public class BoidsArea : MonoBehaviour
     public bool GenerateBounds = false;
     public bool LoadBoundsFromFile = false;
     public bool CleanUpBounds = false;
+
 	void Start () 
     {
         isStarted = true;
@@ -63,9 +64,12 @@ public class BoidsArea : MonoBehaviour
         }
         boundsCollection.Add(bounds); // iffy quick solution, will add proper management to created bounds later when i need it, at least it is a start.
 		GL_OctreeRenderer.OctreeRenderer.boundsOctree = bounds;
-        PopulateBounds();
-        
+        PopulateBounds();      
       
+    }
+    static public void ToggleLazyGhost()
+    {
+        fastObstacle = !fastObstacle;
     }
     public void PopulateBounds()
     {
@@ -253,21 +257,7 @@ public class BoidsArea : MonoBehaviour
         DebugOutput.Shout("finished bounds in " + (stopWatch.ElapsedMilliseconds) + ", a total of " + bounds.relatedOctrees.Count + " octrees remains, of which " + cnt + " is traversable");
 
     }
-	// Update is called once per frame
-	void Update () 
-    {
-	
-	}
-    void OnGUI()
-    {
-        if(bounds!=null)
-        {
-            if (GUI.Button(new Rect(10, 130, 200, 20), "FastCheck: " + fastObstacle))
-            {
-                fastObstacle = !fastObstacle;
-            }
-        }
-    }
+
 #if UNITY_EDITOR
     public void OnDrawGizmos()
     {

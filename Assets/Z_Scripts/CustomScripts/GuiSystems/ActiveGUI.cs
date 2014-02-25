@@ -57,7 +57,7 @@ class ActiveGUI : MonoBehaviour
 
         if (Input.GetMouseButtonDown(1))
         {
-            DebugOutput.Shout("Toggling on ActiveGUI " + ActiveGUIToggled);
+            //DebugOutput.Shout("Toggling on ActiveGUI " + ActiveGUIToggled);
 
             mouseAnchorpos = Input.mousePosition;
 
@@ -228,64 +228,58 @@ class ActiveGUIObject
 
     public void AddGuiObject(string path)
     {
-        AddGuiObject(path,null);
+        AddGuiObject(path,null,false );
     }
-    public void AddGuiObject(string path,GUIButtonDelegate buttondelegate)
+    public void AddGuiObject(string path,GUIButtonDelegate bdelegate,bool ActivatedOnStart)
     {
-        DebugOutput.Shout("Creating # " + path);
         if(ActiveGuiObjects == null)
         {
             ActiveGuiObjects = new List<ActiveGUIObject>();
         }
         if(ActiveGuiObjects !=null)
         {
-            string currentObjectName;
-            string newPath = "";
-            int indexOfSlash = path.IndexOf('/');
-            if(indexOfSlash >=1)
-            {
-                currentObjectName = path.Substring(0,indexOfSlash);
-                newPath = path.Substring(indexOfSlash+1);
-            }
-            else
-            {
-                currentObjectName = path;
+            Active = ActivatedOnStart;
 
-            }
-
-            foreach (var ago in ActiveGuiObjects)
+            if (path.Contains("/"))
             {
-                if (ago.name.ToLower() == currentObjectName.ToLower())
+                string folder = path.Substring(0, path.IndexOf('/'));
+                string cutoff = path.Substring(path.IndexOf('/') + 1);
+
+                foreach (var AGO in ActiveGuiObjects)
                 {
-                    if (newPath != "")
+                    if (AGO.name.ToLowerInvariant() == folder.ToLowerInvariant())
                     {
-                        ago.AddGuiObject(newPath,buttondelegate);
+                        AGO.AddGuiObject(cutoff, bdelegate,ActivatedOnStart);
                         return;
                     }
                 }
-            }
 
-            ActiveGUIObject newAGO;
-            if (AllfatherGuiObject != null)
-            {
-                newAGO = new ActiveGUIObject(currentObjectName,AllfatherGuiObject);
-
-            }
-            else
-            {
-                newAGO = new ActiveGUIObject(currentObjectName, this);
-
-            }
-            ActiveGuiObjects.Add(newAGO);
-            if( newPath != "")
-            {
-                newAGO.AddGuiObject(newPath, buttondelegate);
-            }
-            else
-            {
                 
+
+                if(AllfatherGuiObject==null){AllfatherGuiObject = this;}
+                ActiveGUIObject newAGO = new ActiveGUIObject(folder, AllfatherGuiObject);
+                newAGO.AddGuiObject(cutoff, bdelegate, ActivatedOnStart);
+                ActiveGuiObjects.Add(newAGO);
             }
-            
+            else
+            {
+                foreach (var AGO in ActiveGuiObjects)
+                {
+                    if (AGO.name.ToLowerInvariant() == path.ToLowerInvariant())
+                    {
+                        if (bdelegate != null)
+                        {
+                            buttonDelegate = bdelegate;
+                        }
+                        return;
+                    }
+                }
+                if (AllfatherGuiObject == null) { AllfatherGuiObject = this; }
+                ActiveGUIObject newAGO = new ActiveGUIObject(path, AllfatherGuiObject);
+                newAGO.buttonDelegate = bdelegate;
+                newAGO.Active = ActivatedOnStart;
+                ActiveGuiObjects.Add(newAGO);
+            }
         }
     }
 
@@ -307,9 +301,7 @@ class ActiveGUIObject
             
             if (GUILayout.Button(name,ButtonStyle, GUILayout.Width(ActiveGUI.ButtonWidth), GUILayout.Height(ActiveGUI.ButtonHeight)))
             {
-                //if (Input.GetMouseButtonDown(1))
-                {
-                    DebugOutput.Shout("pressed button: " + name);
+
                     if (buttonDelegate != null)
                     {
                         buttonDelegate();
@@ -323,7 +315,6 @@ class ActiveGUIObject
                         }
                     }
                     guiHasBeenUsed = true;
-                }
 
             }
         }
