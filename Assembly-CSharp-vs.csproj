@@ -65,6 +65,9 @@
      <Compile Include="Assets\Z_Scripts\CustomScripts\FollowCam.cs" />
      <Compile Include="Assets\Z_Scripts\CustomScripts\FollowWaypoints.cs" />
      <Compile Include="Assets\Z_Scripts\CustomScripts\FreeflightCamera.cs" />
+     <Compile Include="Assets\Z_Scripts\CustomScripts\GuiSystems\ActiveGUI.cs" />
+     <Compile Include="Assets\Z_Scripts\CustomScripts\GuiSystems\ActiveMenu.cs" />
+     <Compile Include="Assets\Z_Scripts\CustomScripts\GuiSystems\GUITestLab.cs" />
      <Compile Include="Assets\Z_Scripts\CustomScripts\ObjectLabel.cs" />
      <Compile Include="Assets\Z_Scripts\CustomScripts\Player\ShipController.cs" />
      <Compile Include="Assets\Z_Scripts\CustomScripts\PrimitiveRenderer\GL_CircleRenderer.cs" />
@@ -76,6 +79,8 @@
      <Compile Include="Assets\Z_Scripts\CustomScripts\System\sTime.cs" />
      <Compile Include="Assets\Z_Scripts\CustomScripts\TerrainMeshCopy.cs" />
      <Compile Include="Assets\Z_Scripts\CustomScripts\TestBed\TestingDistance.cs" />
+     <Compile Include="Assets\Z_Scripts\CustomScripts\TransformHandler\GL_HandleLine.cs" />
+     <Compile Include="Assets\Z_Scripts\CustomScripts\TransformHandler\TranslationHandle.cs" />
      <Compile Include="Assets\Z_Scripts\CustomScripts\Utility\AnimationSpeed.cs" />
      <Compile Include="Assets\Z_Scripts\CustomScripts\Utility\DebugOutput.cs" />
      <Compile Include="Assets\Z_Scripts\CustomScripts\Utility\FishColorChanger.cs" />
@@ -83,6 +88,7 @@
      <Compile Include="Assets\Z_Scripts\CustomScripts\Utility\GetTerrainHeight.cs" />
      <Compile Include="Assets\Z_Scripts\CustomScripts\Utility\MagicWandRuler.cs" />
      <Compile Include="Assets\Z_Scripts\CustomScripts\Utility\MoveToRayCast.cs" />
+     <Compile Include="Assets\Z_Scripts\CustomScripts\Utility\PixelPerfect.cs" />
      <Compile Include="Assets\Z_Scripts\CustomScripts\Utility\QuickCompare.cs" />
      <Compile Include="Assets\Z_Scripts\CustomScripts\Utility\RotateAroundAxis.cs" />
      <Compile Include="Assets\Z_Scripts\CustomScripts\Utility\SnapToPosition.cs" />

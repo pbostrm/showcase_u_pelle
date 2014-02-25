@@ -540,36 +540,52 @@ public class BoundsOctree
             }
             if ((Obstacle&& DrawObstacle) || (Empty&&DrawEmpty) || (!Empty && DrawNonEmpty))
             {
-                GL.Vertex(corners[0]);
-                GL.Vertex(corners[1]);
-                GL.Vertex(corners[0]);
-                GL.Vertex(corners[2]);
-                GL.Vertex(corners[1]);
-                GL.Vertex(corners[3]);
-                GL.Vertex(corners[2]);
-                GL.Vertex(corners[3]);
-
-                GL.Vertex(corners[4]);
-                GL.Vertex(corners[5]);
-                GL.Vertex(corners[4]);
-                GL.Vertex(corners[6]);
-                GL.Vertex(corners[5]);
-                GL.Vertex(corners[7]);
-                GL.Vertex(corners[6]);
-                GL.Vertex(corners[7]);
-
-                GL.Vertex(corners[0]);
-                GL.Vertex(corners[4]);
-                GL.Vertex(corners[1]);
-                GL.Vertex(corners[5]);
-                GL.Vertex(corners[2]);
-                GL.Vertex(corners[6]);
-                GL.Vertex(corners[3]);
-                GL.Vertex(corners[7]);
+                GL_PushVertices(false);
             }
            
         }
 	}
+    public void GL_PushVertices(bool cross)
+    {
+        GL.Vertex(corners[0]);
+        GL.Vertex(corners[1]);
+        GL.Vertex(corners[0]);
+        GL.Vertex(corners[2]);
+        GL.Vertex(corners[1]);
+        GL.Vertex(corners[3]);
+        GL.Vertex(corners[2]);
+        GL.Vertex(corners[3]);
+
+        GL.Vertex(corners[4]);
+        GL.Vertex(corners[5]);
+        GL.Vertex(corners[4]);
+        GL.Vertex(corners[6]);
+        GL.Vertex(corners[5]);
+        GL.Vertex(corners[7]);
+        GL.Vertex(corners[6]);
+        GL.Vertex(corners[7]);
+
+        GL.Vertex(corners[0]);
+        GL.Vertex(corners[4]);
+        GL.Vertex(corners[1]);
+        GL.Vertex(corners[5]);
+        GL.Vertex(corners[2]);
+        GL.Vertex(corners[6]);
+        GL.Vertex(corners[3]);
+        GL.Vertex(corners[7]);
+
+        if (cross)
+        {
+            GL.Vertex(corners[0]);
+            GL.Vertex(corners[7]);
+            GL.Vertex(corners[1]);
+            GL.Vertex(corners[6]);
+            GL.Vertex(corners[2]);
+            GL.Vertex(corners[5]);
+            GL.Vertex(corners[3]);
+            GL.Vertex(corners[4]);
+        }
+    }
 	public void DrawEmptyGizmos()
 	{
 		if (subOctrees != null)

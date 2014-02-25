@@ -11,7 +11,7 @@ class OctreeAnalyser : MonoBehaviour
     public void Awake()
     {
 
-
+        GL_OctreeRenderer.AddRenderDelegate(GL_Draw);
     }
     public void Update()
     {
@@ -41,6 +41,26 @@ class OctreeAnalyser : MonoBehaviour
 
                 }
             }
+        }
+    }
+    public void GL_Draw()
+    {
+        if (currentBound != null)
+        {
+            
+
+            if (currentBound.neighbors != null)
+            {
+                GL.Color(Color.cyan);
+                foreach(var neighbor in currentBound.neighbors)
+                {
+                    neighbor.GL_PushVertices(true);
+                }
+            }
+            GL.Color(Color.magenta);
+            currentBound.GL_PushVertices(true);
+            GL.Vertex(transform.position);
+            GL.Vertex(currentBound.position);
         }
     }
 }

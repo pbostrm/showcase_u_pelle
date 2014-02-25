@@ -95,31 +95,6 @@ class BoundsContainment  : sBehaviour
             }
         }
         return;
-        if (baseOctree != null)
-        {
-            Gizmos.color = new Color(0.1f,0.9f,0.1f,0.5f);
-            Vector3 point = (transform.position - baseOctree.position);
-            //int b_x = (int)(point.x+size);
-            byte b_x = baseOctree.ConvertCartesianToBinary(point.x);
-            byte b_y = ((byte)(((point.y + baseOctree.size) / (baseOctree.size * 2.0f)) * 256));
-            byte b_z = ((byte)(((point.z + baseOctree.size) / (baseOctree.size * 2.0f)) * 256));
-
-
-            BoundsOctree bO = baseOctree.GetBoundByBinary(transform.position);
-            BoundsOctree bO2 = baseOctree.GetBound(true,transform.position);
-            if(bO !=null && bO2 != null)
-            {
-                //DebugOutput.Shout("b_X = " + b_x + " " + b_y + " " + b_z + " returned: " + bO.binaryLocation_X + " " + bO.binaryLocation_Y + " " + bO.binaryLocation_Z + " correct " + bO2.binaryLocation_X + " " + bO2.binaryLocation_Y + " " + bO2.binaryLocation_Z);
-                DebugOutput.Shout("b_X = " + b_x + " " + Convert.ToString(b_x, 2) + " returned: " + bO.binaryLocation_X + " " + Convert.ToString(bO.binaryLocation_X, 2) + " correct " + bO2.binaryLocation_X + " " + Convert.ToString(bO2.binaryLocation_X, 2));
-
-                Gizmos.DrawCube(bO.position, (Vector3.one * bO.size * 2) - Vector3.one * 0.1f);
-
-                Gizmos.color = new Color(0.9f, 0.4f, 0.0f, 0.99f);
-
-                Gizmos.DrawCube(bO2.position, (Vector3.one * bO2.size * 2) - Vector3.one * 0.1f);
-            }
-        }
-        base.sDrawGizmos();
 
     }
 #endif

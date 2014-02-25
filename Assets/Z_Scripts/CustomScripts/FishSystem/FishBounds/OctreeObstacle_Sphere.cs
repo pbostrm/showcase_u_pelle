@@ -11,12 +11,12 @@ class OctreeObstacle_Sphere: MonoBehaviour
     public static int ObstacleSphereCnt = 0;
     int id;
     public int occupiedOctreesCnt;
-    public bool InBoidsArea;
 
     public float radius;
-    BoundsOctree boundsToBeDeGhosted;
 
     Vector3 startposition;
+    Vector3 lastUpdatePos;
+    public float smallestVolumeHalfSize;
 
     public bool resettable;
     public float createdOctreesPerSecond;
@@ -44,35 +44,34 @@ class OctreeObstacle_Sphere: MonoBehaviour
         }
         if (occupiedOctrees != null)
         {
-
-            for (int i = occupiedOctrees.Count - 1; i >= 0; i--)
+            if ((transform.position - lastUpdatePos).sqrMagnitude > smallestVolumeHalfSize * smallestVolumeHalfSize)
             {
-                if (!occupiedOctrees[i].IntersectSphere(transform.position, radius))
+                lastUpdatePos = transform.position;
+                for (int i = occupiedOctrees.Count - 1; i >= 0; i--)
                 {
-                    occupiedOctrees[i].Obstacle = false;
-                    occupiedOctrees[i].CleanupObstacleGhost();
-                    occupiedOctrees.RemoveAt(i);
-               
-                }
-                else
-                {
-                    if (occupiedOctrees[i].neighbors != null)
+                    if (!occupiedOctrees[i].IntersectSphere(transform.position, radius))
                     {
-                        for (int j = occupiedOctrees[i].neighbors.Count - 1; j >= 0; j--)
+                        occupiedOctrees[i].Obstacle = false;
+                        occupiedOctrees[i].CleanupObstacleGhost();
+                        occupiedOctrees.RemoveAt(i);
+               
+                    }
+                    else
+                    {
+                        if (occupiedOctrees[i].neighbors != null)
                         {
-                            if (!occupiedOctrees[i].neighbors[j].Obstacle)
+                            for (int j = occupiedOctrees[i].neighbors.Count - 1; j >= 0; j--)
                             {
+                                if (!occupiedOctrees[i].neighbors[j].Obstacle)
+                                {
 
-                                occupiedOctrees[i].neighbors[j].GetBounds(false,occupiedOctrees, transform.position, radius,ref octreesCreated);
+                                    occupiedOctrees[i].neighbors[j].GetBounds(false, occupiedOctrees, transform.position, radius, ref octreesCreated);
 
+                                }
                             }
-
                         }
-
                     }
                 }
-
-
             }
         }
 
@@ -80,8 +79,14 @@ class OctreeObstacle_Sphere: MonoBehaviour
         {
             if (BoidsArea.boundsCollection != null)
             {
+                float volumeSize;
                 foreach (var boundsOctree in BoidsArea.boundsCollection)
                 {
+                    volumeSize = boundsOctree.size / Mathf.Pow(2, boundsOctree.levelDepth);
+                    if (volumeSize < smallestVolumeHalfSize || smallestVolumeHalfSize <= 0.0f)
+                    {
+                        smallestVolumeHalfSize = volumeSize;
+                    }
                     boundsOctree.GetBounds(false,occupiedOctrees, transform.position, radius,ref octreesCreated);
                 }
             }
@@ -122,7 +127,7 @@ class OctreeObstacle_Sphere: MonoBehaviour
     {
         if (resettable)
         {
-            if (GUI.Button(new Rect(10, 170+(id*22), 100, 20), "ResetBall"))
+            if (GUI.Button(new Rect(10, 250+(id*22), 100, 20), "ResetBall"))
             {
                 transform.position = startposition;
             }
