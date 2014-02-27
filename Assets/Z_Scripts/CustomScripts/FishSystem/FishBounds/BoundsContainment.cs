@@ -40,19 +40,41 @@ class BoundsContainment  : sBehaviour
     {
         if (boundsOctree == null)
         {
-            gotBounds = false;
-            return;
+            boundsOctree = BoidsArea.getBoundsOctree( transform.position);
+           // gotBounds = false;
+           // return;
+            if (boundsOctree == null)
+            {
+                outsideBounds = true;
+                gotBounds = false;
+                // gotBounds = false;
+                // return;
+            }
+        }
+
+        if (boundsOctree != null)
+        {
+            if (!boundsOctree.isPointInside(transform.position) || boundsOctree.Obstacle)
+            {
+                boundsOctree = null;
+            }
+            else
+            {
+                oldPos = transform.position;
+
+            }
+            outsideBounds = false;
         }
         if (outsideBounds)
         {
             schooling.Overridden = true;
-            fishMove.targetDirection = boundsOctree.position -transform.position;
+            fishMove.targetDirection = oldPos -transform.position;
         }
         else
         {
             schooling.Overridden = false;
         }
-        if(transform.position != oldPos)
+       /* if(transform.position != oldPos)
         {
             if (outsideBounds)
             {
@@ -77,7 +99,7 @@ class BoundsContainment  : sBehaviour
                 }
             }
             oldPos = transform.position;
-        }
+        }*/
     }
 #if UNITY_EDITOR
     public override void sDrawGizmos()
@@ -87,12 +109,16 @@ class BoundsContainment  : sBehaviour
             Gizmos.DrawCube(boundsOctree.position,Vector3.one*boundsOctree.size*2.0f);
 
             Gizmos.color = new Color(0.1f,0f,0.8f,0.2f);
-            foreach (var neighbor in boundsOctree.neighbors)
+            if (boundsOctree.neighbors != null)
             {
+                foreach (var neighbor in boundsOctree.neighbors)
+                {
 
-                Gizmos.DrawCube(neighbor.position, (Vector3.one * neighbor.size * 2) - Vector3.one * 0.1f);
-                
+                    Gizmos.DrawCube(neighbor.position, (Vector3.one * neighbor.size * 2) - Vector3.one * 0.1f);
+
+                }
             }
+            
         }
         return;
 

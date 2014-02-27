@@ -67,6 +67,24 @@ class BoidsArea : MonoBehaviour
         PopulateBounds();      
       
     }
+
+    static public BoundsOctree getBoundsOctree(Vector3 pos)
+    {
+        if (boundsCollection != null)
+        {
+            BoundsOctree bo;
+
+            foreach (var bounds in boundsCollection)
+            {
+                bo = bounds.GetBound(pos);
+                if (bo != null)
+                {
+                    return bo;
+                }
+            }
+        }
+        return null;
+    }
     static public void ToggleLazyGhost()
     {
         fastObstacle = !fastObstacle;
@@ -92,13 +110,20 @@ class BoidsArea : MonoBehaviour
         }
 
 
-
+        int randomSpawnCount = 0;
+        int randomSpawnOctree = 0;
         foreach (var pop in population)
         {
             pop.baseOctree = bounds;
             if (RandomStart)
             {
-                pop.boundsOctree = bounds.relatedOctrees[UnityEngine.Random.Range(0, bounds.relatedOctrees.Count - 1)];
+                if (randomSpawnCount <= 0)
+                {
+                    randomSpawnCount = UnityEngine.Random.Range(1, 15);
+                    randomSpawnOctree = UnityEngine.Random.Range(0, bounds.relatedOctrees.Count - 1);
+                }
+                randomSpawnOctree--;
+                pop.boundsOctree = bounds.relatedOctrees[randomSpawnOctree];
             }
             else
             {

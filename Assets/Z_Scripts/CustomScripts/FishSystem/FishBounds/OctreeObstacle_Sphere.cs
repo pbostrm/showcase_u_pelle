@@ -74,7 +74,7 @@ class OctreeObstacle_Sphere: MonoBehaviour
                         {
                             for (int j = occupiedOctrees[i].neighbors.Count - 1; j >= 0; j--)
                             {
-                                if (!occupiedOctrees[i].neighbors[j].Obstacle)
+                                if (!occupiedOctrees[i].neighbors[j].Obstacle && occupiedOctrees[i].neighbors[j].Empty)
                                 {
 
                                     occupiedOctrees[i].neighbors[j].GetBounds(false, occupiedOctrees, transform.position, radius, ref octreesCreated);

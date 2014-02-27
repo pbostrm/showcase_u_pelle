@@ -7,141 +7,110 @@ using UnityEngine;
 class ObstacleAvoidance : sBehaviour
 {
     private FishControl fishControl;
-    private ProximityControl proxControl;
     private FishMove fishMove;
     private Schooling schooling;
 
-    public float updateInterval = 0.2f;
-    public float updateTimer;
+    float updateTimer;
+    public float UpdateInterval;
 
-    private bool ObstacleAwareness;
-    private bool newDirection;
-    private Vector3 overrideDirection;
+    public Vector3 RepelVelocity;
 
-    public float scanRange = 0.5f;
-    public Vector3 hitNormal;
-    private RaycastHit hit;
+    BoundsOctree boundsOctree;
     public void Awake()
     {
         fishControl = GetComponent<FishControl>();
-        proxControl = GetComponent<ProximityControl>();
+
         fishMove = GetComponent<FishMove>();
         schooling = GetComponent<Schooling>();
-        updateTimer = UnityEngine.Random.Range(0.0f, updateInterval);
+        updateTimer = UnityEngine.Random.Range(0.0f, UpdateInterval);
 
-        hit = new RaycastHit();
+
     }
 
     public void Update()
     {
-        if (proxControl.obstacles.Count >= 1)
+      //  if (updateTimer <= 0)
         {
-            ObstacleAwareness = true;
-            if (updateTimer <= 0.0f )
+            updateTimer += UpdateInterval;
+
+            if(boundsOctree==null)
             {
+                boundsOctree = BoidsArea.getBoundsOctree(transform.position);
+            }
 
-                if (ScanDirection(transform.forward, scanRange))
+            if (boundsOctree != null)
+            {
+                if(!boundsOctree.isPointInside(transform.position))
                 {
-                    newDirection = true;
-                    //DebugOutput.Shout("MazelTov!");
-                    //Find a new route.
-                    
-                    overrideDirection = (hit.point + Vector3.Reflect(transform.forward, hit.normal) * hit.distance)
-                        - transform.position;
-                    int cnt = 0;
+                    boundsOctree = BoidsArea.getBoundsOctree(transform.position);
+                }
 
-                    if (ScanDirection(overrideDirection, scanRange))
+                if(boundsOctree !=null)
+                {
+                    if (boundsOctree.neighbors != null)
                     {
-                        bool foundDirection = false;
-                        while (!foundDirection)
+                        RepelVelocity = Vector3.zero;
+                        bool gotObstacles = false;
+                        foreach (var neighBor in boundsOctree.neighbors)
                         {
-                            cnt++;
-                            overrideDirection = Vector3.Reflect(overrideDirection, hit.normal)*hit.distance;
-                            if (overrideDirection == Vector3.zero)
+                            if (!neighBor.Empty || neighBor.Obstacle)
                             {
-                                overrideDirection = -transform.forward;
-                            }
-                            if (!ScanDirection(overrideDirection, scanRange))
-                            {
-                                foundDirection = true;
-                                //DebugOutput.Shout("found an angle at: " + cnt.ToString());
-                            }
-                            if (cnt >= 100 )
-                            {
-                                //DebugOutput.Shout("Megabajs");
-                                foundDirection = true;
+                                gotObstacles = true;
+                                Vector3 v1 = (boundsOctree.position - neighBor.position);
+                                Vector3 v2 = getFaceDirection(v1 * neighBor.size * 2, neighBor);    //v1*neighbor.size*2 to make sure it is outside the cube.
+                                //Vector3 v3 = v2 * neighBor.size;
+                                float magnitude = (boundsOctree.position - transform.position).sqrMagnitude
+                                    / (boundsOctree.position - v2 * neighBor.size).sqrMagnitude;
+                                RepelVelocity += v2 *1.0f / Mathf.Clamp(magnitude,0.0f,1.0f);
+                                //RepelVelocity += direction*force multiplier;
                             }
                         }
-                        //DebugOutput.Shout("BAJS!");
+                        if (gotObstacles)
+                        {
+                            fishMove.moveDirection = RepelVelocity.normalized;
+                            schooling.RepelVelocity = RepelVelocity;
+                            //schooling.GroupUpVelocity = Vector3.zero;
+                            //schooling.MatchVelocity = Vector3.zero;
+                        }
+                        
                     }
-                    /*fishMove.targetDirection = (hit.point + Vector3.Reflect(transform.forward, hit.normal)*hit.distance) 
-                        - transform.position;*/
-                }
-                else
-                {
-                    updateTimer += updateInterval;
-
-                }
-
-
-            }
-            if (newDirection)
-            {
-                schooling.Overridden = true;
-                if (Vector3.Angle(transform.forward, overrideDirection) >= 1.0f)
-                {
-                    fishMove.targetDirection = overrideDirection;
-                }
-                else
-                {
-                    newDirection = false;
-                    schooling.Overridden = false;
                 }
             }
-            updateTimer -= Time.deltaTime;
+            
         }
-        else
-        {
-            ObstacleAwareness = false;
-        }
+        updateTimer -= Time.deltaTime;
     }
-    public bool ScanDirection(Vector3 direction,float length)
+
+    Vector3 getFaceDirection(Vector3 point,BoundsOctree bo)
     {
-
-        if (Physics.SphereCast(transform.position,0.2f, direction,out hit, length, proxControl.ObstacleMask))
+        //i could probably do this by reversing the BoundsOctree.RefreshNeighbors, last loop that way i would get all the edges and corners.
+        Vector3 dir = new Vector3();
+        if (point.y >= bo.top.y)
         {
-            return true;
+            dir.y = 1;
         }
-        return false;
-    }
-#if UNITY_EDITOR
-    public override void sDrawGizmos()
-    {
-        if (ObstacleAwareness)
+        else if ( point.y < bo.bottom.y)
         {
-            Gizmos.DrawLine(transform.position, transform.position + transform.forward * scanRange);
-
-           /* Vector3 v1 = hit.point + hit.normal*scanRange;
-            Gizmos.DrawLine(hit.point,v1);
-
-            Gizmos.color = Color.cyan;
-            Vector3 v2 = Vector3.Cross(v1, transform.forward);
-            Gizmos.DrawLine(v1 ,v1+v2);
-
-            Gizmos.color = Color.blue;
-            Vector3 v3 = Vector3.Cross(v1, v2);
-            Gizmos.DrawLine(v1, v1 + v3);
-            */
-            Gizmos.color = Color.yellow;
-            Vector3 v4 = Vector3.Reflect(transform.forward, hit.normal);
-            Gizmos.DrawLine(hit.point, hit.point + v4*scanRange);
-
-            Gizmos.color = Color.white;
-            //Gizmos.DrawLine(transform.position, hit.point + v4 * hit.distance);
-            Gizmos.DrawLine(transform.position,transform.position+overrideDirection );
+            dir.y = -1;
         }
+
+        if (point.x >= bo.east.x )
+        {
+            dir.x = 1;
+        }
+        else if ( point.x < bo.west.x)
+        {
+            dir.x = -1;
+        }
+
+        if (point.z >= bo.north.z )
+        {
+            dir.z = 1;
+        }
+        else if ( point.z < bo.south.z)
+        {
+            dir.z = -1;
+        }
+        return dir;
     }
-#endif
-
-
 }

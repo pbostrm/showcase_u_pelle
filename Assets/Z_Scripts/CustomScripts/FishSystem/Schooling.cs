@@ -43,6 +43,7 @@ class Schooling : sBehaviour
             attractivenessModule = GetComponent<AttractivenessModule>();
         closestFishTimer = UnityEngine.Random.Range(0.0f, closestFishTimerInterval);
     }
+
     public void Update()
     {
         if (!Overridden)
@@ -65,7 +66,9 @@ class Schooling : sBehaviour
             if (closestFishes.Count >= 1)
             {
 
-                Velocity = (RepelVelocity * RepelFactor) + (GroupUpVelocity * GroupUpFactor) + (MatchVelocity * MatchVelocityFactor);
+                //Velocity = (RepelVelocity * RepelFactor) + (GroupUpVelocity * GroupUpFactor) + (MatchVelocity * MatchVelocityFactor);
+                Velocity = RepelVelocity + GroupUpVelocity + MatchVelocity ;
+
 
                 fishMove.targetDirection = Velocity;
                 float attractivenessOffset = 0.2f;
@@ -119,11 +122,11 @@ class Schooling : sBehaviour
                 }
                 // Group up
 
-                GroupUpVelocity = (v2 / (closestFishes.Count + 1)) - transform.position;//(transform.position - v1);
-                //GroupUpVelocity = (v2 / (aboveCnt + 1)) - transform.position;//(transform.position - v1);
-                // Match velocity
-
-                MatchVelocity = v3.normalized * fishControl.MoveSpeed;
+                //GroupUpVelocity = (v2 / (closestFishes.Count + 1)) - transform.position;// Match velocity
+                RepelVelocity = RepelVelocity * RepelFactor;
+                GroupUpVelocity = ((v2 / (closestFishes.Count + 1)) - transform.position)*GroupUpFactor;
+                MatchVelocity = (v3.normalized * fishControl.MoveSpeed)*MatchVelocityFactor;
+                //MatchVelocity = v3.normalized * fishControl.MoveSpeed;
 
                 
             }

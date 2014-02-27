@@ -223,7 +223,7 @@ public class BoundsOctree
             abandonedNeighbors = null;
         }
         
-		if (subOctrees !=null || !Empty)
+		if (subOctrees !=null)
 		{
             if (subOctrees != null)
             {
@@ -254,16 +254,6 @@ public class BoundsOctree
         
 	}
 
-	public void getAdjacent(int workingID, int targetID, BoundsOctree target, List<BoundsOctree> neighBorList)
-	{
-		for (int i = 0; i < 8; i++)
-		{
-		//    if (i != target.cornerID)
-			{
-				//subOctrees[i]
-			}
-		}
-	}
 
 	private BoundsOctree _commonAncestor;
 	private BoundsOctree _rightNeighbor;
@@ -302,8 +292,7 @@ public class BoundsOctree
 				xLoc += binaryCellSize*_x;
 			}
 
-			if (
-				(binaryLocation_Y + binaryCellSize) * _y < (1 << (Levels + 1)) &&
+			if ((binaryLocation_Y + binaryCellSize) * _y < (1 << (Levels + 1)) &&
 				(binaryLocation_Y + (1 << Levels) * _y) > 0)
 			{
 				if (_y == -1)
@@ -315,8 +304,7 @@ public class BoundsOctree
 					yLoc += binaryCellSize*_y;
 				}
 
-				if (
-					(binaryLocation_Z + binaryCellSize)*_z < (1 << (Levels + 1)) &&
+				if ((binaryLocation_Z + binaryCellSize)*_z < (1 << (Levels + 1)) &&
 					(binaryLocation_Z + (1 << Levels)*_z) > 0)
 				{
 					if (_z == -1)
@@ -374,7 +362,7 @@ public class BoundsOctree
 		{
 			return;
 		}
-		if (subOctrees == null && Empty)
+        if (subOctrees == null) // (subOctrees == null && Empty) would remove nonEmpty objects from neighbor lists... depending on what you want to do with the octree.
 		{
 			source.AddNeighbor(this);
 		}
@@ -525,17 +513,19 @@ public class BoundsOctree
             
             if (Empty)
             {
-                GL.Color(Color.yellow);
+                if (Obstacle)
+                {
+                    GL.Color(Color.blue);
+
+                }
+                else
+                {
+                    GL.Color(Color.yellow);
+                }
             }
             else
             {
-               
                 GL.Color(Color.red);
-
-            }
-            if (Obstacle)
-            {
-                GL.Color(Color.blue);
 
             }
             if ((Obstacle&& DrawObstacle) || (Empty&&DrawEmpty) || (!Empty && DrawNonEmpty))
