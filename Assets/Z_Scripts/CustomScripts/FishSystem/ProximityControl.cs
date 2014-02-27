@@ -38,7 +38,7 @@ class ProximityControl : sBehaviour
         {
             //DebugOutput.Shout("Fish in proximity");
             AddFishToProximity(outerProximity,hitColliders);
-            AddObstaclesToProximity(obstacles,hitColliders);
+            AdobstaclesToProximity(obstacles,hitColliders);
         }
         else
         {
@@ -69,7 +69,7 @@ class ProximityControl : sBehaviour
             }
         }
     }
-    void AddObstaclesToProximity(List<Collider> toList,Collider[] colliders)
+    void AdobstaclesToProximity(List<Collider> toList,Collider[] colliders)
     {
         toList.Clear();
 

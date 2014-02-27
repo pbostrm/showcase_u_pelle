@@ -10,23 +10,32 @@ class OctreeAnalyser : MonoBehaviour
     BoundsOctree currentBound;
     Vector3 startPosition;
 
+    public bool ShowCaseObject;
     bool enabled;
     public void Awake()
     {
-        startPosition = transform.position;
+        if (ShowCaseObject)
+        {
+            startPosition = transform.position;
 
-        transform.position = Vector3.one * 3000f;
+            transform.position = Vector3.one * 3000f;
+        }
+        
 
 
         GL_OctreeRenderer.AddRenderDelegate(GL_Draw);
     }
     public void Start()
     {
-         ActiveMenu.AddActiveGUIObject("LeftSideMenu", "Octree Analyzer", Hide);
-        ActiveMenu.AddActiveGUIObject("LeftSideMenu", "Octree Analyzer/Reset", Reset);
-        ActiveMenu.AddActiveGUIObject("LeftSideMenu", "Octree Analyzer/This tool shows the");
-        ActiveMenu.AddActiveGUIObject("LeftSideMenu", "Octree Analyzer/realtime Neighbor ");
-        ActiveMenu.AddActiveGUIObject("LeftSideMenu", "Octree Analyzer/generation");
+        if (ShowCaseObject)
+        {
+            ActiveMenu.AddActiveGUIObject("LeftSideMenu", "Octree Analyzer", Hide);
+            ActiveMenu.AddActiveGUIObject("LeftSideMenu", "Octree Analyzer/Reset", Reset);
+            ActiveMenu.AddActiveGUIObject("LeftSideMenu", "Octree Analyzer/This tool shows the");
+            ActiveMenu.AddActiveGUIObject("LeftSideMenu", "Octree Analyzer/realtime Neighbor ");
+            ActiveMenu.AddActiveGUIObject("LeftSideMenu", "Octree Analyzer/generation");
+        }
+       
     }
     public void Hide()
     {
@@ -84,13 +93,31 @@ class OctreeAnalyser : MonoBehaviour
 
             if (currentBound.neighbors != null)
             {
-                GL.Color(Color.cyan);
+
+                
                 foreach(var neighbor in currentBound.neighbors)
                 {
+                    if (!neighbor.Empty)
+                    {
+                        GL.Color(Color.gray);
+
+                    }
+                    else
+                    {
+                        if (neighbor.Obstacle)
+                        {
+                            GL.Color(Color.magenta);
+
+                        }
+                        else
+                        {
+                            GL.Color(Color.cyan);
+                        }
+                    }
                     neighbor.GL_PushVertices(true);
                 }
             }
-            GL.Color(Color.magenta);
+            GL.Color(Color.green);
             currentBound.GL_PushVertices(true);
             GL.Vertex(transform.position);
             GL.Vertex(currentBound.position);
