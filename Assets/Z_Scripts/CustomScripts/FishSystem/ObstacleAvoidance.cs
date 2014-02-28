@@ -44,8 +44,8 @@ class ObstacleAvoidance : sBehaviour
                 {
                     boundsOctree = BoidsArea.getBoundsOctree(transform.position);
                 }
-
-                if(boundsOctree !=null)
+                
+                if(boundsOctree !=null && boundsOctree.Border)
                 {
                     if (boundsOctree.neighbors != null)
                     {
@@ -59,9 +59,10 @@ class ObstacleAvoidance : sBehaviour
                                 Vector3 v1 = (boundsOctree.position - neighBor.position);
                                 Vector3 v2 = getFaceDirection(v1 * neighBor.size * 2, neighBor);    //v1*neighbor.size*2 to make sure it is outside the cube.
                                 //Vector3 v3 = v2 * neighBor.size;
-                                float magnitude = (boundsOctree.position - transform.position).sqrMagnitude
-                                    / (boundsOctree.position - v2 * neighBor.size).sqrMagnitude;
-                                RepelVelocity += v2 *1.0f / Mathf.Clamp(magnitude,0.0f,1.0f);
+                                float magnitude = Mathf.Clamp(distanceToOctree(boundsOctree, -v2),0.01f,boundsOctree.size);
+                                //float magnitude = (boundsOctree.position - transform.position).sqrMagnitude
+                                //    / (boundsOctree.position - v2 * neighBor.size).sqrMagnitude;
+                                RepelVelocity += v2 *1.0f / Mathf.Clamp(magnitude/boundsOctree.size,0.01f,1.0f);
                                 //RepelVelocity += direction*force multiplier;
                             }
                         }
@@ -70,7 +71,7 @@ class ObstacleAvoidance : sBehaviour
                             fishMove.moveDirection = RepelVelocity.normalized;
                             schooling.RepelVelocity = RepelVelocity;
                             //schooling.GroupUpVelocity = Vector3.zero;
-                            //schooling.MatchVelocity = Vector3.zero;
+                            //schooling.MatchVelocity = Vector3.zero;                        
                         }
                         
                     }
@@ -80,7 +81,15 @@ class ObstacleAvoidance : sBehaviour
         }
         updateTimer -= Time.deltaTime;
     }
-
+    float distanceToOctree(BoundsOctree currentOctree, Vector3 direction)
+    {
+        float distance = 0;
+        Vector3 facePos = currentOctree.position + (direction * currentOctree.size);
+        Vector3 difference = facePos - transform.position;
+        Debug.DrawLine(facePos, facePos - difference, Color.red);
+        Debug.DrawLine(currentOctree.position, facePos, Color.blue);
+        return difference.magnitude;
+    }
     Vector3 getFaceDirection(Vector3 point,BoundsOctree bo)
     {
         //i could probably do this by reversing the BoundsOctree.RefreshNeighbors, last loop that way i would get all the edges and corners.

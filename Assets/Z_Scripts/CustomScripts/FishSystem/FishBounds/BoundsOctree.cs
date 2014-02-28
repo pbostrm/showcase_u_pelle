@@ -12,6 +12,7 @@ public class BoundsOctree
 	public Vector3 position;
 	public bool Empty = false;
     public bool Obstacle = false;
+    public bool Border = false;
 
 	public int cornerID;
 	public int levelDepth;
@@ -245,11 +246,19 @@ public class BoundsOctree
         }
 		if (parentOctree != null)
 		{
+            Border = false;
 			for (int i = 0; i < 26; i++)
 			{                
 				LocateNeighbor(this,AdjacentDirections[i, 0], AdjacentDirections[i,1], AdjacentDirections[i,2]);
 
 			}
+            foreach (var neighbor in neighbors)
+            {
+                if (neighbor.Obstacle || !neighbor.Empty)
+                {
+                    Border = true;
+                }
+            }
 		}
         
 	}

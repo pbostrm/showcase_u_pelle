@@ -41,14 +41,12 @@ class BoundsContainment  : sBehaviour
         if (boundsOctree == null)
         {
             boundsOctree = BoidsArea.getBoundsOctree( transform.position);
-           // gotBounds = false;
-           // return;
+
             if (boundsOctree == null)
             {
                 outsideBounds = true;
                 gotBounds = false;
-                // gotBounds = false;
-                // return;
+
             }
         }
 
@@ -74,32 +72,7 @@ class BoundsContainment  : sBehaviour
         {
             schooling.Overridden = false;
         }
-       /* if(transform.position != oldPos)
-        {
-            if (outsideBounds)
-            {
-                BoundsOctree bo = baseOctree.GetBound(true, transform.position);
-
-                if (bo != null && bo.Empty && bo.Related && !bo.Obstacle)
-                {
-                    outsideBounds = false;
-                    boundsOctree = bo;
-                }
-                else
-                {
-
-                    outsideBounds = true;
-                }
-            }
-            else
-            {
-                if (!boundsOctree.isPointInside(transform.position))
-                {
-                    outsideBounds = true;
-                }
-            }
-            oldPos = transform.position;
-        }*/
+    
     }
 #if UNITY_EDITOR
     public override void sDrawGizmos()

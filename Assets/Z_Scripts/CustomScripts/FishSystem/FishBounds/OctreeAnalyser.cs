@@ -104,14 +104,20 @@ class OctreeAnalyser : MonoBehaviour
                     }
                     else
                     {
+
                         if (neighbor.Obstacle)
                         {
                             GL.Color(Color.magenta);
 
                         }
+                        else if(neighbor.Border)
+                        {
+                            GL.Color(new Color(1, 1, 0));
+                        }
                         else
                         {
                             GL.Color(Color.cyan);
+
                         }
                     }
                     neighbor.GL_PushVertices(true);
