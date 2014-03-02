@@ -39,8 +39,6 @@ class Schooling : sBehaviour
         fishControl = GetComponent<FishControl>();
         proxControl = GetComponent<ProximityControl>();
         fishMove = GetComponent<FishMove>();
-        if (FishAdministration._enAttractiveness)
-            attractivenessModule = GetComponent<AttractivenessModule>();
         closestFishTimer = UnityEngine.Random.Range(0.0f, closestFishTimerInterval);
     }
 
@@ -71,7 +69,6 @@ class Schooling : sBehaviour
 
 
                 fishMove.targetDirection = Velocity;
-                float attractivenessOffset = 0.2f;
                 Vector3 v1,v2,v3;
                 // Repel!
                 RepelVelocity = Vector3.zero;

@@ -16,7 +16,7 @@ public class BoundsOctree
 
 	public int cornerID;
 	public int levelDepth;
-	public int Levels; //why do i have two level
+	public int maxLevelDepth; //why do i have two level
 	
 	public List<BoundsOctree> relatedOctrees;
 	public bool Related;
@@ -33,8 +33,6 @@ public class BoundsOctree
 	public Vector3 south { get { return position + new Vector3(0, 0, -1) * size; } }
 	public Vector3 east { get { return position + new Vector3(1, 0, 0) * size; } }
 	public Vector3 west { get { return position + new Vector3(-1, 0, 0) * size; } }
-
-	public Vector3[] sides;
 
 
 	public static readonly short[,] AdjacentDirections = new short[26,3]
@@ -75,8 +73,8 @@ public class BoundsOctree
 		
 
 	};
-
-    public Vector3[] cornerCentre;
+	#endregion
+    public Vector3[] subCornerCenter;
     public Vector3[] corners;
 
 	public List<BoundsOctree> neighbors = new List<BoundsOctree>();
@@ -84,8 +82,8 @@ public class BoundsOctree
 	public int binaryLocation_X;
 	public int binaryLocation_Y;
 	public int binaryLocation_Z;
-	#endregion
-	public BoundsOctree(BoundsOctree parent, int _cornerID, string _name, float s, Vector3 pos, int maxL, int maxPop,List<BoundsOctree> relatedOcs)
+
+	public BoundsOctree(BoundsOctree _parent, int _cornerID, string _name, float _size, Vector3 _pos, int _maxLevelDepth,List<BoundsOctree> relatedOcs)
 	{
 
 		if (relatedOcs == null)
@@ -98,14 +96,14 @@ public class BoundsOctree
 			relatedOctrees = relatedOcs;
 			relatedOctrees.Add(this);
 		}
-		parentOctree = parent;
+		parentOctree = _parent;
 		cornerID = _cornerID;
 
-		levelDepth = maxL;
-		size = s;
+        levelDepth = _maxLevelDepth;
+        size = _size;
 		if (parentOctree != null)
 		{
-            position = parentOctree.cornerCentre[cornerID];
+            position = parentOctree.subCornerCenter[cornerID];
 
 
 			binaryLocation_X = parentOctree.binaryLocation_X;
@@ -124,37 +122,29 @@ public class BoundsOctree
 			{
 				binaryLocation_Z += (int)Math.Pow(2, levelDepth);
 			}
-			Levels = parentOctree.Levels;
+            maxLevelDepth = parentOctree.maxLevelDepth;
 		}
 		else
 		{
-			Levels = levelDepth;
+            maxLevelDepth = levelDepth;
 
-			position = pos;
+            position = _pos;
 			binaryLocation_X += (int)Math.Pow(2, levelDepth);
 			binaryLocation_Y += (int)Math.Pow(2, levelDepth);
 			binaryLocation_Z += (int)Math.Pow(2, levelDepth);
 		}
 
-		sides = new Vector3[6];
-		sides[0] = top;
-		sides[1] = bottom;
-		sides[2] = north;
-		sides[3] = south;
-		sides[4] = east;
-		sides[5] = west;
 
 
-
-        cornerCentre = new Vector3[8];
-        cornerCentre[0] = new Vector3(-0.5f,-0.5f,-0.5f)*size+position;
-        cornerCentre[1] = new Vector3(0.5f, -0.5f, -0.5f) * size + position; 
-        cornerCentre[2] = new Vector3(-0.5f,-0.5f,0.5f) * size + position;
-        cornerCentre[3] = new Vector3(0.5f, -0.5f, 0.5f) * size + position;
-        cornerCentre[4] = new Vector3(-0.5f, 0.5f, -0.5f) * size + position;
-        cornerCentre[5] = new Vector3(0.5f, 0.5f, -0.5f) * size + position;
-        cornerCentre[6] = new Vector3(-0.5f, 0.5f, 0.5f) * size + position;
-        cornerCentre[7] = new Vector3(0.5f, 0.5f, 0.5f) * size + position;
+        subCornerCenter = new Vector3[8];
+        subCornerCenter[0] = new Vector3(-0.5f, -0.5f, -0.5f) * size + position;
+        subCornerCenter[1] = new Vector3(0.5f, -0.5f, -0.5f) * size + position;
+        subCornerCenter[2] = new Vector3(-0.5f, -0.5f, 0.5f) * size + position;
+        subCornerCenter[3] = new Vector3(0.5f, -0.5f, 0.5f) * size + position;
+        subCornerCenter[4] = new Vector3(-0.5f, 0.5f, -0.5f) * size + position;
+        subCornerCenter[5] = new Vector3(0.5f, 0.5f, -0.5f) * size + position;
+        subCornerCenter[6] = new Vector3(-0.5f, 0.5f, 0.5f) * size + position;
+        subCornerCenter[7] = new Vector3(0.5f, 0.5f, 0.5f) * size + position;
 
         corners = new Vector3[8];
         corners[0] = new Vector3(-1f, -1f, -1f) * size + position;
@@ -177,11 +167,11 @@ public class BoundsOctree
         }
         ClearNeighbors();
 		shouldBeDeleted = true;
-		//neighbors.Clear();
-		//Debug.Log("Prutt");
+
 	}
     public void ClearNeighbors()
     {
+        //most of this is to make sure that this nodes current neighbors know that they lost a buddy
         if (parentOctree.abandonedNeighbors == null)
         {
             parentOctree.abandonedNeighbors = new List<BoundsOctree>();
@@ -193,7 +183,16 @@ public class BoundsOctree
                 parentOctree.abandonedNeighbors.Remove(this);
             }
         }
-
+        if (abandonedNeighbors != null)
+        {
+            foreach (var neighbor in abandonedNeighbors)
+            {
+                if (!parentOctree.abandonedNeighbors.Contains(neighbor))
+                {
+                    parentOctree.abandonedNeighbors.Add(neighbor);
+                }
+            }
+        }
         if (neighbors != null)
         {
             foreach (var neighbor in neighbors)
@@ -262,8 +261,7 @@ public class BoundsOctree
 	}
 
 
-	private BoundsOctree _commonAncestor;
-	private BoundsOctree _rightNeighbor;
+
 	public void AddNeighbor(BoundsOctree neighbor)
 	{
 		if (neighbor == null|| neighbor == this)
@@ -281,14 +279,16 @@ public class BoundsOctree
 	}
 	public BoundsOctree LocateNeighbor(BoundsOctree source, short _x, short _y, short _z)
 	{
+
+        //crème de la crème
 		int binaryCellSize = 1 << levelDepth;
 
 		int xLoc = binaryLocation_X;
 		int yLoc = binaryLocation_Y;
 		int zLoc = binaryLocation_Z;
 
-		if ((binaryLocation_X + binaryCellSize)*_x < (1 << (Levels + 1))&&
-			(binaryLocation_X + (1 << Levels)*_x)>0)
+        if ((binaryLocation_X + binaryCellSize) * _x < (1 << (maxLevelDepth + 1)) &&
+            (binaryLocation_X + (1 << maxLevelDepth) * _x) > 0)
 		{
 			if(_x == -1)
 			{
@@ -299,8 +299,8 @@ public class BoundsOctree
 				xLoc += binaryCellSize*_x;
 			}
 
-			if ((binaryLocation_Y + binaryCellSize) * _y < (1 << (Levels + 1)) &&
-				(binaryLocation_Y + (1 << Levels) * _y) > 0)
+            if ((binaryLocation_Y + binaryCellSize) * _y < (1 << (maxLevelDepth + 1)) &&
+                (binaryLocation_Y + (1 << maxLevelDepth) * _y) > 0)
 			{
 				if (_y == -1)
 				{
@@ -311,8 +311,8 @@ public class BoundsOctree
 					yLoc += binaryCellSize*_y;
 				}
 
-				if ((binaryLocation_Z + binaryCellSize)*_z < (1 << (Levels + 1)) &&
-					(binaryLocation_Z + (1 << Levels)*_z) > 0)
+                if ((binaryLocation_Z + binaryCellSize) * _z < (1 << (maxLevelDepth + 1)) &&
+                    (binaryLocation_Z + (1 << maxLevelDepth) * _z) > 0)
 				{
 					if (_z == -1)
 					{
@@ -343,28 +343,33 @@ public class BoundsOctree
 	}
 	public BoundsOctree TraverseToOctree( int targetXLoc, int targetYLoc, int targetZLoc)
 	{
-		
-		if (subOctrees == null)
+        /* early concept test of traversing down the octree. 
+            this is what i created with the help of the paper written by Sarah F. Frisken, Ronald N. Perry. 
+        it works as long as you know exactly which node you want, or its parent. 
+         * the current iteration is AddToNeighbors(), which does exactly the same thing but so much more.*/
+
+
+        if (subOctrees == null)
 		{
 			return this;
 		}
 		else
 		{
 			int childBranchBit = 1 << (levelDepth - 1);
-			int childIndex;
-
-			int binaryCellSize = 1 << levelDepth;
-
-			childIndex =
+			int childIndex =
 			(((targetXLoc & childBranchBit) >> levelDepth - 1)) +
 			(((targetYLoc & childBranchBit) >> levelDepth - 1) * 4) +
 			(((targetZLoc & childBranchBit) >> levelDepth - 1) * 2);
+
 			return subOctrees[childIndex].TraverseToOctree(targetXLoc, targetYLoc, targetZLoc);
 		}
 		   
 	}
 	public void AddToNeighbors(BoundsOctree source, int targetXLoc, int targetYLoc, int targetZLoc)
 	{
+        /* if 
+        * you have suboctrees lower than the asked for target it will get all the nodes that 
+        * neighbor it, by comparing the coordinates we create a filter, i wish i could make this a little bit more automated. but it iss friggin fast anyway.*/
 		if (source == null)
 		{
 			return;
@@ -423,15 +428,10 @@ public class BoundsOctree
 				{
 					int offset = (((targetYLoc & childBranchBit) >> levelDepth - 1) * 4) +
 						 (((targetZLoc & childBranchBit) >> levelDepth - 1) * 2);
-					if (subOctrees != null)
-					{
-						subOctrees[0 + offset].AddToNeighbors(source, targetXLoc, targetYLoc, targetZLoc);
-						subOctrees[1 + offset].AddToNeighbors(source, targetXLoc, targetYLoc, targetZLoc); 
-					}
-					else
-					{
-						Debug.Log("SHUIT!");
-					}
+			
+					subOctrees[0 + offset].AddToNeighbors(source, targetXLoc, targetYLoc, targetZLoc);
+					subOctrees[1 + offset].AddToNeighbors(source, targetXLoc, targetYLoc, targetZLoc); 
+				
 				}
 				else if(!y)
 				{
@@ -480,34 +480,9 @@ public class BoundsOctree
 
 		}
 	}
-	/*public BoundsOctree TraverseToOctree(int targetXLoc,int targetYLoc,int targetZLoc)
-	{
-		if(subOctrees == null || (binaryLocation_X == targetXLoc && binaryLocation_Y == targetYLoc &&
-			binaryLocation_Z == targetZLoc))
-		{
-			return this;
-		}
-		else
-		{
-
-			int childBranchBit = 1 << (levelDepth - 1);
-
-			int childIndex = 
-				(((targetXLoc & childBranchBit) >> levelDepth - 1)) +
-				(((targetYLoc & childBranchBit) >> levelDepth - 1)*4) +
-				(((targetZLoc & childBranchBit) >> levelDepth - 1)*2) ;
-
-
-			return subOctrees[childIndex].TraverseToOctree(targetXLoc, targetYLoc, targetZLoc);
-		  
-		}
-	}
-	*/
 	
     public void GL_Draw(bool DrawObstacle,bool DrawEmpty,bool DrawNonEmpty)
 	{
-        
-
         if (subOctrees != null)
         {
             foreach (var subOctree in subOctrees)
@@ -583,13 +558,14 @@ public class BoundsOctree
             GL.Vertex(corners[4]);
         }
     }
-	public void DrawEmptyGizmos()
+
+	public void DrawGizmos(bool drawEmpty, bool drawObstacle, bool drawUnrelated)
 	{
 		if (subOctrees != null)
 		{
 			foreach (var subOctree in subOctrees)
 			{
-				subOctree.DrawEmptyGizmos();
+				subOctree.DrawGizmos(drawEmpty,drawObstacle,drawUnrelated);
 			}
 		}
 		else
@@ -599,100 +575,32 @@ public class BoundsOctree
 				if (Related)
 				{
 					Gizmos.color = Color.green;
-
+					//Gizmos.DrawWireCube(position, (Vector3.one * size * 2) - Vector3.one * 0.05f);			
 				}
 				else
 				{
-					Gizmos.color = Color.yellow;
-
-				}
-				Gizmos.DrawWireCube(position, (Vector3.one * size * 2) - Vector3.one * 0.01f);
-
-
-			}
-		}
-
-	}
-	public void DrawFullGizmos()
-	{
-		if (subOctrees != null)
-		{
-			foreach (var subOctree in subOctrees)
-			{
-				subOctree.DrawFullGizmos();
-			}
-		}
-		else
-		{
-			if (!Empty)
-			{
-				if (Related)
-				{
-					Gizmos.color = Color.magenta;
-
-				}
-				else
-				{
-					Gizmos.color = Color.red;
-
-				}
-				Gizmos.DrawWireCube(position, (Vector3.one * size * 2) - Vector3.one * 0.01f);
-
-
-			}
-		}
-
-	}
-	public void DrawGizmos()
-	{
-		if (subOctrees != null)
-		{
-			foreach (var subOctree in subOctrees)
-			{
-				subOctree.DrawGizmos();
-			}
-		}
-		else
-		{
-			if (Empty)
-			{
-				if (Related)
-				{
-					Gizmos.color = Color.green;
-					//Gizmos.DrawWireCube(position, (Vector3.one * size * 2) - Vector3.one * 0.05f);
-					
-				}
-				else
-				{
-					Gizmos.color = Color.yellow;
-					
-				}
-
-		
+                    if(!drawUnrelated)
+                    {
+                        return;
+                    }
+					Gizmos.color = Color.yellow;	
+				}		
 			}
 			else
 			{
-				if (Related)
+				if (!drawObstacle)
 				{
-					Gizmos.color = Color.magenta;
-					
-
+                    return;
 				}
 				else
 				{
 					Gizmos.color = Color.red;
 
 				}
-				Gizmos.DrawWireCube(position, (Vector3.one * size * 2) - Vector3.one * 0.05f);
 				
 			}
-			if (shouldBeDeleted)
-			{
-				Gizmos.color = Color.blue;
-			}
-			//Gizmos.DrawWireCube(position, (Vector3.one * size * 2)-Vector3.one*0.05f);
+            Gizmos.DrawWireCube(position, (Vector3.one * size * 2));
 
-			//Gizmos.DrawWireCube(position, Vector3.one * size*2);
 		}
 
 	}
@@ -710,13 +618,6 @@ public class BoundsOctree
 			Gizmos.DrawCube(position, Vector3.one * size * 1.9f);
 		}
 
-		if (_commonAncestor != null)
-		{
-			Gizmos.color = Color.blue;
-
-			Gizmos.DrawWireCube(_commonAncestor.position, Vector3.one * _commonAncestor.size * 1.99f);
-		}
-		
 		foreach (var neighbor in neighbors)
 		{
 			Gizmos.color = Color.yellow;
@@ -740,12 +641,14 @@ public class BoundsOctree
 		{
             if (!neighbor.Related)
 			{
-                neighbor.EstablishRelations(); //this kills the computer with stackoverflow eventually (its not infinite its just too much)
+                neighbor.EstablishRelations(); //this kills the computer with stackoverflow eventually (its not infinite its just too damn much)
 			}
 		}
 	}
 	public bool CleanOutUnrelated()
 	{
+        // related nodes are nodes that can be reachable from the starting point(offset somewhere), 
+        //essentially this is the "space" fish move around in
 		if (subOctrees != null)
 		{
 			if (Related)
@@ -783,16 +686,20 @@ public class BoundsOctree
 
 	public void CheckBounds(LayerMask obstacleMask)
 	{
-		if (Physics.CheckSphere(position, size*1.732f,obstacleMask) )
+        /*1.732 is the distance from center of a 2 unit wide cube's center to one of the corners, ish.
+		    * this is because i use Unity's own physics to determine if there is any obstacles(static not my own dynamic) 
+         * and the easiest way of doing that is by doing a cube scan for each node. but unity does not support that, so a sphere would have to do.
+         */
+        if (Physics.CheckSphere(position, size*1.732f,obstacleMask) ) 
 		{
 			if (levelDepth >= 1)
 			{
 				subOctrees = new BoundsOctree[8];
-				bool subsEmpty = true;
+				bool subsEmpty = true;  // used to check if subs are pointless or not, we dont want more nodes than we need.
 				for (int i = 0; i < 8; i++)
 				{
 					subOctrees[i] = new BoundsOctree(this, i, "Name", size * 0.5f,
-						position, levelDepth - 1,999,relatedOctrees);
+						position, levelDepth - 1,relatedOctrees);
 					subOctrees[i].CheckBounds(obstacleMask);
 					if (!subOctrees[i].Empty)
 					{
@@ -822,7 +729,6 @@ public class BoundsOctree
 		{
 			if (subOctrees != null)
 			{
-				
 				foreach (var subOctree in subOctrees)
 				{
 					BoundsOctree bo = subOctree.GetBound(point);
@@ -848,7 +754,6 @@ public class BoundsOctree
 		{
 			if (subOctrees != null)
 			{
-				
 				foreach (var subOctree in subOctrees)
 				{
 					BoundsOctree bo = subOctree.GetBound(point);
@@ -860,9 +765,7 @@ public class BoundsOctree
 			}
 			else
 			{
-				
 				 return this;
-				
 			}
 		}
 		return null;
@@ -885,14 +788,11 @@ public class BoundsOctree
             {
                 if (subOctrees == null && levelDepth >= 1)
                 {
-                    //do surrounding check, if we're already deep surrounded by obstacles, most likely children will be too.
-                    bool surroundedWithObstacle = false;
-
                     //create children.
                     subOctrees = new BoundsOctree[8];
                     for (int i = 0; i < 8; i++)
                     {
-                        subOctrees[i] = new BoundsOctree(this, i, "Name", size * 0.5f, position, levelDepth - 1, 999, relatedOctrees);
+                        subOctrees[i] = new BoundsOctree(this, i, "Name", size * 0.5f, position, levelDepth - 1, relatedOctrees);
                         subOctrees[i].Empty = Empty;
                     }
                     foreach (var sub in subOctrees)
@@ -957,6 +857,7 @@ public class BoundsOctree
 
         }
     }
+  
     public void CleanupObstacleGhost()
     {
         if (subOctrees != null)
@@ -991,44 +892,9 @@ public class BoundsOctree
 
     }
 
+ 
+    static public float squared(float f) { return f * f; }
 
-	public BoundsOctree GetBoundByBinary(Vector3 point)
-	{
-		point = (point - position);
-		//int b_x = (int)(point.x+size);
-		byte b_x = ConvertCartesianToBinary(point.x);
-		byte b_y = ConvertCartesianToBinary(point.y);
-		byte b_z = ConvertCartesianToBinary(point.z);
-
-		return TraverseToOctree(b_x,b_y,b_z);
-	}
-	public byte ConvertCartesianToBinary(float p)
-	{
-		int point = ((int)(((p + size) / (size * 2.0f)) * 256)-1);
-   /*     int b_p = 0;
-		int t = 0;
-		for(int i = levelDepth;i>0; i--)
-		{
-			t = (int) Math.Pow(2,i)
-			if(point >= t)
-			{
-				point -= t;
-				b_p += t;
-			}
-	 */   
-		return (byte)point;
-		//return ((byte)(((p + size) / (size * 2.0f)) * 256));
-	}
-
-	public bool isPointInside(Vector3 point)
-	{
-		if (point.y <= top.y && point.y > bottom.y && point.x <= east.x &&
-			point.x > west.x && point.z <= north.z && point.z > south.z)
-		{
-			return true;
-		}
-		return false;
-	}
     
     public bool IntersectSphere(Vector3 sphere,float radius) 
     {
@@ -1060,7 +926,15 @@ public class BoundsOctree
         return false;
 
     }
-    static public float squared(float f) { return f * f; }
+   	public bool isPointInside(Vector3 point)
+	{
+		if (point.y <= top.y && point.y > bottom.y && point.x <= east.x &&
+			point.x > west.x && point.z <= north.z && point.z > south.z)
+		{
+			return true;
+		}
+		return false;
+	}
     public bool isSphereOverlapEdge(Vector3 sphere, float radius)
     {
         if (sphere.y + radius >= top.y && sphere.y - radius < bottom.y
@@ -1112,7 +986,6 @@ public class BoundsOctree
 		{
 			bw.Write(false);
 		}
-		
 	}
 
 	public void CreateFromStream(BinaryReader br)
@@ -1125,7 +998,7 @@ public class BoundsOctree
 
 			for (int i = 0; i < 8; i++)
 			{
-				subOctrees[i] = new BoundsOctree(this, i, "Name", size * 0.5f, position, levelDepth - 1, 999, relatedOctrees);
+				subOctrees[i] = new BoundsOctree(this, i, "Name", size * 0.5f, position, levelDepth - 1, relatedOctrees);
 				subOctrees[i].CreateFromStream(br);
 			}
 		}

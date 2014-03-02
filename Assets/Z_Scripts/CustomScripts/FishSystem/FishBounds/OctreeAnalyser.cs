@@ -11,7 +11,7 @@ class OctreeAnalyser : MonoBehaviour
     Vector3 startPosition;
 
     public bool ShowCaseObject;
-    bool enabled;
+    bool toggled;
     public void Awake()
     {
         if (ShowCaseObject)
@@ -39,8 +39,8 @@ class OctreeAnalyser : MonoBehaviour
     }
     public void Hide()
     {
-        enabled = !enabled;
-        if (!enabled)
+        toggled = !toggled;
+        if (!toggled)
         {
             transform.position = Vector3.one * 3000f;
         }

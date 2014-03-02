@@ -57,20 +57,16 @@ class ActiveGUI : MonoBehaviour
 
         if (Input.GetMouseButtonDown(1))
         {
-            //DebugOutput.Shout("Toggling on ActiveGUI " + ActiveGUIToggled);
-
             mouseAnchorpos = Input.mousePosition;
 
             if (!ActiveGUIToggled)
             {
                 ActiveGUIToggled = true;
-                //mainGuiObject.DeactivateChilds();
             }
             else
             {
                 mainGuiObject.DeactivateChilds();
-                //GuiHasBeenToggled = true;
-                //ActiveGUIToggled = false;
+
             }
 
         }

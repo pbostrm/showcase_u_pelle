@@ -7,7 +7,7 @@ class GL_OctreeRenderer : MonoBehaviour
 
 	private static Material lineMaterial;
 
-    public bool enabled = true;
+    public bool RenderEnabled = true;
     public bool RenderObstacle = true;
     public bool RenderEmpty = true;
     public bool RenderNonEmpty = true;
@@ -48,7 +48,7 @@ class GL_OctreeRenderer : MonoBehaviour
     }
     public void ToggleGLRender()
     {
-        enabled = !enabled;
+        RenderEnabled = !RenderEnabled;
     }
     public void ToggleObstacle()
     {
@@ -79,7 +79,7 @@ class GL_OctreeRenderer : MonoBehaviour
 
         lineMaterial.SetPass(0);
         GL.Begin(GL.LINES);
-        if (enabled)
+        if (RenderEnabled)
         {
             boundsOctree.GL_Draw(false, RenderEmpty, false);
             boundsOctree.GL_Draw(false, false, RenderNonEmpty);
@@ -87,7 +87,7 @@ class GL_OctreeRenderer : MonoBehaviour
         }
 
 
-        if (renderDelegates != null)
+        if (renderDelegates != null) //should actually make a proper GL_render component that deals with this.
         {
             foreach (var renderDelagate in renderDelegates)
             {

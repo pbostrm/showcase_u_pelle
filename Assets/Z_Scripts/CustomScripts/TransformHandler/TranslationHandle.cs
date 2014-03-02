@@ -6,7 +6,7 @@ using UnityEngine;
 
 class TranslationHandle : MonoBehaviour
 {
-    public bool enabled;
+    public bool toggled;
     bool lastUpdate;
 
     public bool movingThis;
@@ -23,14 +23,12 @@ class TranslationHandle : MonoBehaviour
     }
     public void Update()
     {
-        enabled = Input.GetMouseButton(0);
-        if (lastUpdate ^ enabled)
+        toggled = Input.GetMouseButton(0);
+        if (lastUpdate ^ toggled)
         {
-            //Physics
-            if (enabled)
+            if (toggled)
             {
                 Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                //DebugOutput.Shout("click");
 
                 RaycastHit hit;
                 Debug.DrawLine(ray.origin, ray.origin + ray.direction * 1000, Color.red, 5.0f);
@@ -43,14 +41,12 @@ class TranslationHandle : MonoBehaviour
                         movingThis = true;
                     }
                 }
-
-
             }
             else
             {
                 movingThis = false;
             }
-            lastUpdate = enabled;
+            lastUpdate = toggled;
 
         }
         if (movingThis)

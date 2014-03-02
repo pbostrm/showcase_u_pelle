@@ -7,27 +7,6 @@ using UnityEditor;
 
 public class MagicTools : Editor
 {
-    [MenuItem("PellePowerTools/Magic Wand/Copy into Torus")]
-    static void CopyIntoTorus()
-    {
-        Transform[] selection = Selection.GetTransforms(
-        SelectionMode.TopLevel | SelectionMode.Editable);
-        if (selection.Length == 1)
-        {
-            for (int i = 0; i <= 16; i++)
-            {
-                
-            }
-        }
-    }
-
-
-    [MenuItem("PellePowerTools/Magic Wand/Copy into Torus", true)]
-    static bool ValidateSelection()
-    {
-        return Selection.activeGameObject != null;
-    }
-
     [MenuItem("PellePowerTools/Magic Wand/the magicRuler %#d")]
     static void CursorDuplicate()
     {

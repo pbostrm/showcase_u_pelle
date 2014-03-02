@@ -16,6 +16,10 @@ class ObstacleAvoidance : sBehaviour
     public Vector3 RepelVelocity;
 
     BoundsOctree boundsOctree;
+
+    Vector3 debugObstacleFace;
+    static public bool toggleDebugObstacle;
+    bool gotObstacles;
     public void Awake()
     {
         fishControl = GetComponent<FishControl>();
@@ -24,75 +28,68 @@ class ObstacleAvoidance : sBehaviour
         schooling = GetComponent<Schooling>();
         updateTimer = UnityEngine.Random.Range(0.0f, UpdateInterval);
 
+        GL_OctreeRenderer.AddRenderDelegate(GL_Draw);
 
     }
 
     public void Update()
     {
-      //  if (updateTimer <= 0)
-        {
-            updateTimer += UpdateInterval;
 
-            if(boundsOctree==null)
+
+        if(boundsOctree==null)
+        {
+            boundsOctree = BoidsArea.getBoundsOctree(transform.position);
+        }
+
+        if (boundsOctree != null)
+        {
+            if(!boundsOctree.isPointInside(transform.position))
             {
                 boundsOctree = BoidsArea.getBoundsOctree(transform.position);
             }
-
-            if (boundsOctree != null)
-            {
-                if(!boundsOctree.isPointInside(transform.position))
-                {
-                    boundsOctree = BoidsArea.getBoundsOctree(transform.position);
-                }
                 
-                if(boundsOctree !=null && boundsOctree.Border)
+            if(boundsOctree !=null && boundsOctree.Border)
+            {
+                if (boundsOctree.neighbors != null)
                 {
-                    if (boundsOctree.neighbors != null)
+                    RepelVelocity = Vector3.zero;
+                    gotObstacles = false;
+                    foreach (var neighBor in boundsOctree.neighbors)
                     {
-                        RepelVelocity = Vector3.zero;
-                        bool gotObstacles = false;
-                        foreach (var neighBor in boundsOctree.neighbors)
+                        if (!neighBor.Empty || neighBor.Obstacle)
                         {
-                            if (!neighBor.Empty || neighBor.Obstacle)
-                            {
-                                gotObstacles = true;
-                                Vector3 v1 = (boundsOctree.position - neighBor.position);
-                                Vector3 v2 = getFaceDirection(v1 * neighBor.size * 2, neighBor);    //v1*neighbor.size*2 to make sure it is outside the cube.
-                                //Vector3 v3 = v2 * neighBor.size;
-                                float magnitude = Mathf.Clamp(distanceToOctree(boundsOctree, -v2),0.01f,boundsOctree.size);
-                                //float magnitude = (boundsOctree.position - transform.position).sqrMagnitude
-                                //    / (boundsOctree.position - v2 * neighBor.size).sqrMagnitude;
-                                RepelVelocity += v2 *1.0f / Mathf.Clamp(magnitude/boundsOctree.size,0.01f,1.0f);
-                                //RepelVelocity += direction*force multiplier;
-                            }
+                            gotObstacles = true;
+                            Vector3 v1 = (boundsOctree.position - neighBor.position);
+                            Vector3 v2 = getFaceDirection(v1 * neighBor.size * 2, neighBor);    //v1*neighbor.size*2 to make sure it is outside the cube.
+
+                            float magnitude = Mathf.Clamp(distanceToOctree(boundsOctree, -v2),0.01f,boundsOctree.size);
+                            RepelVelocity += v2 *1.0f / Mathf.Clamp(magnitude/boundsOctree.size,0.01f,1.0f);
+                           
                         }
-                        if (gotObstacles)
-                        {
-                            fishMove.moveDirection = RepelVelocity.normalized;
-                            schooling.RepelVelocity = RepelVelocity;
-                            //schooling.GroupUpVelocity = Vector3.zero;
-                            //schooling.MatchVelocity = Vector3.zero;                        
-                        }
-                        
                     }
+                    if (gotObstacles)
+                    {
+                        fishMove.moveDirection = RepelVelocity.normalized;
+                        schooling.RepelVelocity = RepelVelocity;                      
+                    }
+                        
                 }
             }
-            
         }
-        updateTimer -= Time.deltaTime;
+
     }
     float distanceToOctree(BoundsOctree currentOctree, Vector3 direction)
     {
-        float distance = 0;
         Vector3 facePos = currentOctree.position + (direction * currentOctree.size);
         Vector3 difference = facePos - transform.position;
         Debug.DrawLine(facePos, facePos - difference, Color.red);
         Debug.DrawLine(currentOctree.position, facePos, Color.blue);
-        return difference.magnitude;
+        debugObstacleFace = facePos;
+        return difference.magnitude; //yes sqrmagnitude is faster but this code is not yet done so i havent put in enough brainpower on this issue.
     }
     Vector3 getFaceDirection(Vector3 point,BoundsOctree bo)
     {
-        //i could probably do this by reversing the BoundsOctree.RefreshNeighbors, last loop that way i would get all the edges and corners.
+        //i could probably do this by reversing the BoundsOctree.RefreshNeighbors last loop, that way i would get all the edges and corners.
         Vector3 dir = new Vector3();
         if (point.y >= bo.top.y)
         {
@@ -121,5 +118,20 @@ class ObstacleAvoidance : sBehaviour
             dir.z = -1;
         }
         return dir;
+    }
+
+    public void GL_Draw()
+    {
+        if (gotObstacles && boundsOctree != null && toggleDebugObstacle)
+        {
+            GL.Color(Color.red);
+            GL.Vertex(transform.position);
+            GL.Vertex(debugObstacleFace);
+            GL.Color(Color.blue);
+
+            GL.Vertex(debugObstacleFace);
+            GL.Vertex(boundsOctree.position);
+        }
+     
     }
 }

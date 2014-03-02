@@ -14,7 +14,6 @@ class AttractivenessModule : sBehaviour
 
     public bool DisableAttractiveness;
 
-    public int loopDirection = 1;
 
     public static readonly float[,] TetrahedronPoints = new float[4,3]
     {
@@ -25,15 +24,8 @@ class AttractivenessModule : sBehaviour
     public Color triangleColor;
     public void Awake()
     {
-        //loopDirection = UnityEngine.Random.Range(0, 1);
-        if (loopDirection == 0)
-        {
-          //  loopDirection = -1;
-        }
-
-        //GL_Draw.AddDrawer(this);
         Attractiveness = UnityEngine.Random.Range(minAttractiveness, maxAttractiveness);
-        //Attractiveness = maxAttractiveness*0.5f;
+
         triangleColor = hsv2rgb((1.0f/maxAttractiveness)*Attractiveness*0.66f, 1.0f, 1.0f);
         attractivenessRatio = (1/maxAttractiveness)*Attractiveness;
 
@@ -41,9 +33,6 @@ class AttractivenessModule : sBehaviour
         {
             attractivenessRatio = 1.0f;
         }
-        //float blue = Attractiveness - 66;
-        //triangleColor = new Color((1.0f / 33.0f) * Attractiveness, (1.0f / 33.0f) * (Attractiveness - 33.0f), (1.0f / 33.0f) * (Attractiveness-66.0f));
-        //DebugOutput.Shout("TriangleColor = "+triangleColor.ToString());
     }
 
     public Color hsv2rgb(float h, float s, float v)
@@ -85,28 +74,8 @@ class AttractivenessModule : sBehaviour
         {
             toggleTriangle = !toggleTriangle;
         }
-        if (FishAdministration.fishAdministration.loopingAttractiveness)
-        {
-            /*
-            if (Attractiveness > maxAttractiveness || Attractiveness < minAttractiveness)
-            {
-                loopDirection = loopDirection * -1;
-            }*/
+    }
 
-            if (Attractiveness > maxAttractiveness)
-            {
-                Attractiveness -= (maxAttractiveness);
-            }
-            Attractiveness += FishAdministration.fishAdministration.attractivenessLoopSpeed*loopDirection*Time.deltaTime;
-            //Attractiveness = maxAttractiveness*0.5f;
-            triangleColor = hsv2rgb((1.0f / maxAttractiveness) * Attractiveness * 0.66f, 1.0f, 1.0f);
-            attractivenessRatio = (1 / maxAttractiveness) * Attractiveness;
-        }
-    }
-    public Vector3 CalculateBiasedDirection(List<FishControl> fishControls)
-    {
-        return Vector3.zero;
-    }
     #if UNITY_EDITOR
     public override void sDrawGizmos()
     {
