@@ -16,12 +16,11 @@ public class BoundsOctree
 
 	public int cornerID;
 	public int levelDepth;
-	public int Levels;
+	public int Levels; //why do i have two level
 	
 	public List<BoundsOctree> relatedOctrees;
 	public bool Related;
 	public bool shouldBeDeleted;
-	public static List<BoundsOctree> octrees = new List<BoundsOctree>(); //ONLY TO BE USED FOR DEBUG 
 	public BoundsOctree[] subOctrees;
 
 	public BoundsOctree parentOctree;
@@ -88,8 +87,7 @@ public class BoundsOctree
 	#endregion
 	public BoundsOctree(BoundsOctree parent, int _cornerID, string _name, float s, Vector3 pos, int maxL, int maxPop,List<BoundsOctree> relatedOcs)
 	{
-		//Debug.Log("Creating an BoundsOctree!");
-		//octrees.Add(this);
+
 		if (relatedOcs == null)
 		{
 			relatedOctrees = new List<BoundsOctree>();
@@ -102,14 +100,14 @@ public class BoundsOctree
 		}
 		parentOctree = parent;
 		cornerID = _cornerID;
-		//name = _name;
+
 		levelDepth = maxL;
 		size = s;
 		if (parentOctree != null)
 		{
             position = parentOctree.cornerCentre[cornerID];
-			//octreeID = parentOctree.octreeID*10 + cornerID;
-			//binaryLocation_X 
+
+
 			binaryLocation_X = parentOctree.binaryLocation_X;
 			binaryLocation_Y = parentOctree.binaryLocation_Y;
 			binaryLocation_Z = parentOctree.binaryLocation_Z;
@@ -131,13 +129,13 @@ public class BoundsOctree
 		else
 		{
 			Levels = levelDepth;
-		   // octreeID = 1;
+
 			position = pos;
 			binaryLocation_X += (int)Math.Pow(2, levelDepth);
 			binaryLocation_Y += (int)Math.Pow(2, levelDepth);
 			binaryLocation_Z += (int)Math.Pow(2, levelDepth);
 		}
-	   // maxPopulation = maxPop;
+
 		sides = new Vector3[6];
 		sides[0] = top;
 		sides[1] = bottom;

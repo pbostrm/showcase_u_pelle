@@ -7,6 +7,8 @@
 .metadata
 bin/
 tmp/
+library/
+temp/
 *.tmp
 *.bak
 *.swp
@@ -217,3 +219,7 @@ Temp/UnityLockfile
 Library/ScriptAssemblies/CompilationCompleted.txt
 showcase_u_pelle-csharp.sln
 showcase_u_pelle.sln
+Library/ScriptAssemblies/Assembly-CSharp-Editor.dll
+Library/ScriptAssemblies/Assembly-CSharp-Editor.dll.mdb
+*.mdb
+Library/metadata/03/03c2eb20cdc14614580ab46f4cfb37ab
