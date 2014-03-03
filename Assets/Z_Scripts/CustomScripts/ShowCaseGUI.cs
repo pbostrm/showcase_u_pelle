@@ -12,8 +12,8 @@ class ShowCaseGUI :MonoBehaviour
 
         ActiveMenu.AddActiveGUIObject("LeftSideMenu", "Obstacle Ghost", BoidsArea.ToggleLazyGhost);
         ActiveMenu.AddActiveGUIObject("LeftSideMenu", "Obstacle Ghost/is On", null, true);
-        ActiveMenu.AddActiveGUIObject("LeftSideMenu", "ObstacleAvoidance", ToggleObstacleAvoidance);
-        ActiveMenu.AddActiveGUIObject("LeftSideMenu", "ObstacleAvoidance/PewPew", null);
+       // ActiveMenu.AddActiveGUIObject("LeftSideMenu", "ObstacleAvoidance", ToggleObstacleAvoidance);
+       // ActiveMenu.AddActiveGUIObject("LeftSideMenu", "ObstacleAvoidance/PewPew", null);
 
     }
     public void ToggleObstacleAvoidance()

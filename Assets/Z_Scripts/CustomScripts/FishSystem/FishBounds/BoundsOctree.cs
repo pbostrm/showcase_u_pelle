@@ -280,7 +280,6 @@ public class BoundsOctree
 	public BoundsOctree LocateNeighbor(BoundsOctree source, short _x, short _y, short _z)
 	{
 
-        //crème de la crème
 		int binaryCellSize = 1 << levelDepth;
 
 		int xLoc = binaryLocation_X;
@@ -572,6 +571,10 @@ public class BoundsOctree
 		{
 			if (Empty)
 			{
+                if (!drawEmpty)
+                {
+                    return;
+                }
 				if (Related)
 				{
 					Gizmos.color = Color.green;

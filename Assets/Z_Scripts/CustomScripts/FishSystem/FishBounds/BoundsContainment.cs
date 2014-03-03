@@ -67,6 +67,9 @@ class BoundsContainment  : sBehaviour
         {
             schooling.Overridden = true;
             fishMove.targetDirection = oldPos -transform.position;
+            fishMove.moveDirection = fishMove.targetDirection;
+
+
         }
         else
         {

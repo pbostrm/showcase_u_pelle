@@ -20,6 +20,8 @@ class ObstacleAvoidance : sBehaviour
     Vector3 debugObstacleFace;
     static public bool toggleDebugObstacle;
     bool gotObstacles;
+
+    public float maximumObstacleDistance = 4.0f;
     public void Awake()
     {
         fishControl = GetComponent<FishControl>();
@@ -34,8 +36,6 @@ class ObstacleAvoidance : sBehaviour
 
     public void Update()
     {
-
-
         if(boundsOctree==null)
         {
             boundsOctree = BoidsArea.getBoundsOctree(transform.position);
@@ -58,19 +58,54 @@ class ObstacleAvoidance : sBehaviour
                     {
                         if (!neighBor.Empty || neighBor.Obstacle)
                         {
-                            gotObstacles = true;
                             Vector3 v1 = (boundsOctree.position - neighBor.position);
-                            Vector3 v2 = getFaceDirection(v1 * neighBor.size * 2, neighBor);    //v1*neighbor.size*2 to make sure it is outside the cube.
+                            Vector3 v2 = getFaceDirection((v1 * neighBor.size * 2)+boundsOctree.position, neighBor);   
+                            
+                            
 
-                            float magnitude = Mathf.Clamp(distanceToOctree(boundsOctree, -v2),0.01f,boundsOctree.size);
-                            RepelVelocity += v2 *1.0f / Mathf.Clamp(magnitude/boundsOctree.size,0.01f,1.0f);
-                           
+                            Vector3 facePoint = boundsOctree.position + (-v2 * boundsOctree.size);
+                            //getting corner
+                            Vector3 v2isOne;
+                            v2isOne.x = v2.x * v2.x;
+                            v2isOne.y = v2.y * v2.y;
+                            v2isOne.z = v2.z * v2.z;
+
+                            if (v2isOne == Vector3.one) // special case if its a corner.
+                            {
+                                Vector3 repelDir = facePoint - transform.position;
+                                if (repelDir.sqrMagnitude <= maximumObstacleDistance * maximumObstacleDistance)
+                                {
+                                    RepelVelocity += repelDir.normalized * (1.0f - (repelDir.magnitude / maximumObstacleDistance));
+                                    gotObstacles = true;
+
+                                }
+                            }
+                            else
+                            {
+                                Plane p1 = new Plane((facePoint - boundsOctree.position).normalized, facePoint);
+                                float distance = p1.GetDistanceToPoint(transform.position);
+
+                                Debug.DrawLine(facePoint, transform.position, Color.yellow);
+
+
+                                if (distance < maximumObstacleDistance)
+                                {
+                                    Debug.DrawLine(transform.position, transform.position - (p1.normal * distance), Color.red);
+
+                                    gotObstacles = true;
+
+                                    RepelVelocity += v2.normalized * (1.0f - (distance / maximumObstacleDistance));
+                                }
+
+                            }
                         }
                     }
                     if (gotObstacles)
                     {
-                        fishMove.moveDirection = RepelVelocity.normalized;
-                        schooling.RepelVelocity = RepelVelocity;                      
+                        schooling.RepelVelocity = RepelVelocity;
+                        schooling.GroupUpVelocity = Vector3.zero;
+                        schooling.MatchVelocity = Vector3.zero;
+
                     }
                         
                 }
@@ -78,19 +113,9 @@ class ObstacleAvoidance : sBehaviour
         }
 
     }
-    float distanceToOctree(BoundsOctree currentOctree, Vector3 direction)
-    {
-        Vector3 facePos = currentOctree.position + (direction * currentOctree.size);
-        Vector3 difference = facePos - transform.position;
-        Debug.DrawLine(facePos, facePos - difference, Color.red);
-        Debug.DrawLine(currentOctree.position, facePos, Color.blue);
-        debugObstacleFace = facePos;
-        return difference.magnitude; //yes sqrmagnitude is faster but this code is not yet done so i havent put in enough brainpower on this issue.
-    }
     Vector3 getFaceDirection(Vector3 point,BoundsOctree bo)
     {
-        //i could probably do this by reversing the BoundsOctree.RefreshNeighbors last loop, that way i would get all the edges and corners.
-        Vector3 dir = new Vector3();
+         Vector3 dir = new Vector3();
         if (point.y >= bo.top.y)
         {
             dir.y = 1;
@@ -119,7 +144,18 @@ class ObstacleAvoidance : sBehaviour
         }
         return dir;
     }
+    public void OnDrawGizmos()
+    {
+        if (gotObstacles && boundsOctree != null )
+        {
+            Gizmos.color = new Color(1f, 0f, 1f, 0.1f);
+            Gizmos.DrawCube(boundsOctree.position,Vector3.one*boundsOctree.size*2);
+            Gizmos.color = Color.magenta;
+            Gizmos.DrawWireCube(boundsOctree.position, Vector3.one * boundsOctree.size * 2);
 
+            
+        }
+    }
     public void GL_Draw()
     {
         if (gotObstacles && boundsOctree != null && toggleDebugObstacle)
